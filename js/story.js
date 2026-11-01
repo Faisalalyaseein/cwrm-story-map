@@ -27,7 +27,7 @@ Object.keys(GROUPS).forEach(n => setGroup(n, n === 'labels' || n === 'cities' ? 
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const VEC = L.geoJSON(D.countries, { pane: 'base', interactive: false, style: f => ({ color: '#B8C3CC', weight: 0.8, fillColor: f.properties.name === 'Iraq' ? '#F6F8F9' : '#E7ECEF', fillOpacity: 1 }) });
 const TILES = {
-  light: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, errorTileUrl: BLANK, className: 'tiles-soft' }),
+  light: (function () { try { return L.maplibreGL({ style: 'https://tiles.openfreemap.org/styles/positron', attribution: '&copy; <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &copy; OpenMapTiles, data from OpenStreetMap', preserveDrawingBuffer: true }); } catch (e) { return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, errorTileUrl: BLANK, className: 'tiles-soft' }); } })(),
   streets: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, errorTileUrl: BLANK }),
   topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { subdomains: 'abc', attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17, errorTileUrl: BLANK })
 };

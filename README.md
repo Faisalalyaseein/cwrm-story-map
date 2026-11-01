@@ -3,7 +3,7 @@
 A presenter-led, interactive story map built on the first CWRM web app (`../webapp`). Ten scenes (30 steps) follow the storyboard `CWRM_WebGIS_Storyboard.docx` (BMZ Minister visit, 10 to 12 minutes). Only the GIZ logo is shown. **Draft, internal.**
 
 ## Open it
-- Double-click `index.html` (works from disk; the default basemap (OpenStreetMap, soft grey) needs internet, and without it the bundled vector countries map shows instead). Or serve the folder: `node _build/serve.js 8771` then http://localhost:8771
+- Double-click `index.html` (works from disk; the default basemap (OpenFreeMap Positron) needs internet, and without it the bundled vector countries map shows instead). Or serve the folder: `node _build/serve.js 8771` then http://localhost:8771
 - Link to a scene: `index.html#s=8` (scene) or `#s=8&p=3` (scene and step).
 
 ## Presenting
@@ -38,4 +38,4 @@ Rebuild the extra data with `python _build/export_story_data.py` and `python _bu
 Regulators and pumping stations (scene 4); parameters, priority and photographs of the four MOD stations (they appear as proposed points with names only); source and licence of the technology images (scene 9); publisher, date and licence of the RIMES data; the formal definition of a monitoring gap (the 25 km radius is a working assumption).
 
 ## Technical
-Plain HTML, JavaScript and Leaflet 1.9.4 (bundled), no build step, about 2 MB of data plus photographs. Online basemaps: OpenStreetMap in soft grey (default), OpenStreetMap standard, OpenTopoMap (Explore mode). Esri and Carto tiles were tried and no longer work without a key (checked 2026-11-01).
+Plain HTML, JavaScript and Leaflet 1.9.4 (bundled), no build step, about 2 MB of data plus photographs. Online basemaps: OpenFreeMap Positron light grey (default), OpenStreetMap standard, OpenTopoMap (Explore mode). Esri and Carto tiles were tried and no longer work without a key (checked 2026-11-01).
