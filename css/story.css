@@ -108,3 +108,10 @@ body.nolabels .stn-label{display:none}
 #srcX{position:absolute;right:12px;top:8px;border:0;background:none;font-size:28px;color:var(--muted)}
 
 .tiles-soft{filter:grayscale(1) brightness(1.06) contrast(.88)}
+
+#offline{display:none;position:absolute;z-index:1060;left:50%;transform:translateX(-50%);top:64px;background:#FFF4E0;color:#7A4B00;border:1px solid #E8B35A;border-radius:999px;padding:6px 14px;font-size:13px;box-shadow:var(--shadow)}
+#offline.on{display:block}
+#timer{display:none;position:absolute;z-index:1060;right:14px;bottom:20px;background:rgba(11,60,93,.9);color:#fff;border-radius:999px;padding:6px 14px;font:600 13px/1 "Segoe UI",sans-serif}
+#timer.on{display:block}
+#blank{display:none;position:fixed;inset:0;background:#000;z-index:3000}
+#blank.on{display:block}

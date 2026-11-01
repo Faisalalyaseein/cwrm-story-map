@@ -248,5 +248,17 @@ map.on('click', () => { if (cardId && !exploring) closeCard(); });
 window.addEventListener('hashchange', () => { const [a, b] = readHash(); if (a !== si || b !== st) go(a, b, { forceCam: true }); });
 window.addEventListener('resize', () => map.invalidateSize());
 map.setView([33, 43], 6); const [h0, h1] = readHash(); map.whenReady(() => { go(h0, h1); setTimeout(() => { map.invalidateSize(); map.fire("moveend"); }, 300); });
+/* ---------- presenter safety: offline notice, image preloading, blank screen (B), elapsed timer (T) ---------- */
+(function () {
+  const chip = $('#offline'), show = () => chip.classList.add('on'), hide = () => chip.classList.remove('on');
+  window.addEventListener('offline', show); window.addEventListener('online', hide); if (!navigator.onLine) show();
+  const gl = TILES.light && TILES.light.getMaplibreMap && TILES.light.getMaplibreMap();
+  if (gl) { gl.on('error', e => { const m = String((e.error && e.error.message) || ''); if (/fetch|network|Failed|style/i.test(m)) show(); }); gl.on('load', hide); }
+  setTimeout(() => { const src = []; S.forEach(s => (s.photos || []).forEach(p => src.push(p.src))); TECH.forEach(t => src.push('img/' + t[0])); src.forEach(u => { const i = new Image(); i.src = u; }); }, 2500);
+  const t0 = { v: Date.now() }, tm = $('#timer'), fmt = (ms) => { const sec = Math.floor(ms / 1000); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); };
+  setInterval(() => { if (tm.classList.contains('on')) tm.textContent = fmt(Date.now() - t0.v) + ' / 10 to 12 min'; }, 1000);
+  document.addEventListener('keydown', e => { if (e.target.matches('input,select,textarea')) return; const k = e.key.toLowerCase(); if (k === 'b') $('#blank').classList.toggle('on'); else if (k === 't') tm.classList.toggle('on'); else if (k === 'home') t0.v = Date.now(); });
+  $('#blank').onclick = () => $('#blank').classList.remove('on');
+})();
 window.CWRM_story = { go, next, prev, map, explore: setExplore };
 })();
