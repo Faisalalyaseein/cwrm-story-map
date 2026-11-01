@@ -12,7 +12,7 @@ CWRM.scenes = [
     stats: [{ v: '3', l: 'countries share the river' }, { v: '552,000 km²', l: 'Euphrates basin (HydroBASINS)' }],
     steps: [
       {},
-      { layers: { basin: 'on', euph: 'on', euphEmph: true, basinRivers: 'dim', lakes: 'dim', iraq: 'dim' }, line: 'The full course of the Euphrates, from the Turkish highlands to the Gulf.' },
+      { layers: { basin: 'on', euph: 'on', euphEmph: true, basinRivers: 'dim', lakes: 'dim', iraq: 'dim' }, line: 'The full course of the Euphrates, from the Turkish highlands to its junction with the Tigris.' },
       { layers: { basin: 'dim', euph: 'on', basinRivers: 'dim', lakes: 'dim', iraq: 'on' }, line: 'Iraq is the downstream country.', labels: 'countries' }
     ],
     notes: 'The Euphrates is a transboundary river shared by Türkiye, Syria and Iraq. Water availability in Iraq is shaped by upstream inflows, climate variability and growing demand across the basin. We therefore begin at the basin scale before moving to the national and local levels where the CWRM project is supporting more climate-resilient water resources management.',
