@@ -7,18 +7,19 @@
 <title>Hillah River System - CWRM monitoring concept (story map)</title>
 <link rel="stylesheet" href="lib/leaflet/leaflet.css">
 <link rel="stylesheet" href="lib/maplibre/maplibre-gl.css">
-<link rel="stylesheet" href="css/story.css?v=20261102d">
+<link rel="stylesheet" href="css/story.css?v=20261102f">
 </head>
 <body>
 <header id="top">
   <img src="img/giz.png" alt="GIZ" id="giz" onerror="this.style.display='none'">
-  <div id="brand"><b>Hillah River System</b><span>CWRM monitoring concept</span></div>
+  <div id="brand"><b data-i18n="Hillah River System">Hillah River System</b><span data-i18n="CWRM monitoring concept">CWRM monitoring concept</span></div>
   <div id="topBtns">
-    <button id="menuBtn" type="button" title="Scene list">Scenes</button>
-    <button id="notesBtn" type="button" title="Narrative notes (N)">Notes</button>
-    <button id="exploreBtn" type="button" title="Free exploration (E)">Explore</button>
-    <button id="srcBtn" type="button" title="Data sources">Sources</button>
-    <button id="fsBtn" type="button" title="Full screen (F)">Full screen</button>
+    <button id="langBtn" type="button" title="Language (L)">عربي</button>
+    <button id="menuBtn" type="button" title="Scene list" data-i18n="Scenes">Scenes</button>
+    <button id="notesBtn" type="button" title="Narrative notes (N)" data-i18n="Notes">Notes</button>
+    <button id="exploreBtn" type="button" title="Free exploration (E)" data-i18n="Explore">Explore</button>
+    <button id="srcBtn" type="button" title="Data sources" data-i18n="Sources">Sources</button>
+    <button id="fsBtn" type="button" title="Full screen (F)" data-i18n="Full screen">Full screen</button>
   </div>
   <nav id="menu" aria-label="Scenes"></nav>
 </header>
@@ -37,9 +38,9 @@
 <div id="layers" class="panelbox"></div>
 <aside id="card"></aside>
 <aside id="panel"></aside>
-<aside id="notes"><button id="notesX" type="button" aria-label="Close notes">&times;</button><h2 id="notesTitle"></h2><p id="notesBody"></p><h4>WebGIS action</h4><p id="notesAction"></p></aside>
+<aside id="notes"><button id="notesX" type="button" aria-label="Close notes">&times;</button><h2 id="notesTitle"></h2><p id="notesBody"></p><h4 data-i18n="WebGIS action">WebGIS action</h4><p id="notesAction"></p></aside>
 
-<aside id="sources" class="side-panel"><button id="srcX" type="button" aria-label="Close sources">&times;</button><h2>Data sources</h2>
+<aside id="sources" class="side-panel"><button id="srcX" type="button" aria-label="Close sources">&times;</button><h2 data-i18n="Data sources">Data sources</h2>
 <ul>
 <li><b>Basin outline:</b> HydroBASINS v1c, level 6 (HydroSHEDS; Lehner and Grill, 2013). The Euphrates basin is the set of sub-basins that drain to the Euphrates / Tigris junction at Qurna (about 552,000 km²); the Tigris basin is shown for context.</li>
 <li><b>Rivers and lakes of the basin, upstream Euphrates:</b> RIMES shapefiles supplied for the project. Publisher, date and licence are to be confirmed.</li>
@@ -59,20 +60,21 @@
 <script src="lib/leaflet/leaflet.js"></script>
 <script src="lib/maplibre/maplibre-gl.js"></script>
 <script src="lib/maplibre/leaflet-maplibre-gl.js"></script>
-<script src="data/countries.js?v=20261102d"></script>
-<script src="data/basin.js?v=20261102d"></script>
-<script src="data/iraq.js?v=20261102d"></script>
-<script src="data/cities.js?v=20261102d"></script>
-<script src="data/stations.js?v=20261102d"></script>
-<script src="data/reaches.js?v=20261102d"></script>
-<script src="data/euphrates.js?v=20261102d"></script>
-<script src="data/canals.js?v=20261102d"></script>
-<script src="data/drains.js?v=20261102d"></script>
-<script src="data/governorates.js?v=20261102d"></script>
-<script src="data/projects.js?v=20261102d"></script>
-<script src="data/modStations.js?v=20261102d"></script>
-<script src="data/station_extra.js?v=20261102d"></script>
-<script src="js/scenes.js?v=20261102d"></script>
-<script src="js/story.js?v=20261102d"></script>
+<script src="data/countries.js?v=20261102f"></script>
+<script src="data/basin.js?v=20261102f"></script>
+<script src="data/iraq.js?v=20261102f"></script>
+<script src="data/cities.js?v=20261102f"></script>
+<script src="data/stations.js?v=20261102f"></script>
+<script src="data/reaches.js?v=20261102f"></script>
+<script src="data/euphrates.js?v=20261102f"></script>
+<script src="data/canals.js?v=20261102f"></script>
+<script src="data/drains.js?v=20261102f"></script>
+<script src="data/governorates.js?v=20261102f"></script>
+<script src="data/projects.js?v=20261102f"></script>
+<script src="data/modStations.js?v=20261102f"></script>
+<script src="data/station_extra.js?v=20261102f"></script>
+<script src="js/i18n_ar.js?v=20261102f"></script>
+<script src="js/scenes.js?v=20261102f"></script>
+<script src="js/story.js?v=20261102f"></script>
 </body>
 </html>

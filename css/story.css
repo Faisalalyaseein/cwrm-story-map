@@ -115,3 +115,21 @@ body.nolabels .stn-label{display:none}
 #timer.on{display:block}
 #blank{display:none;position:fixed;inset:0;background:#000;z-index:3000}
 #blank.on{display:block}
+
+/* language: English / Arabic */
+body:not(.lang-ar) .ar{display:none}
+body.lang-ar .en{display:none}
+body.lang-ar{font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif}
+body.lang-ar #scene,body.lang-ar #card,body.lang-ar #notes,body.lang-ar #sources,body.lang-ar #panel,body.lang-ar #legend,body.lang-ar #layers,body.lang-ar #menu,body.lang-ar #offline{direction:rtl;text-align:right}
+body.lang-ar #scene{border-left:0;border-right:6px solid var(--navy)}
+body.lang-ar #card .chead .x,body.lang-ar #notesX,body.lang-ar #srcX{margin-left:0}
+body.lang-ar #notesX,body.lang-ar #srcX{right:auto;left:12px}
+body.lang-ar .lg .dm,body.lang-ar .lg .sqr{margin:0 8px}
+body.lang-ar .lab.country{letter-spacing:0}
+body.lang-ar .lab.gov{letter-spacing:0}
+body.lang-ar.explore::after{content:"وضع الاستكشاف: اضغط E للعودة إلى العرض"}
+body.lang-ar #sceneTitle{line-height:1.35}
+body.lang-ar #sceneLine,body.lang-ar #notes p{line-height:1.7}
+#langBtn{font-weight:700}
+body.lang-ar #sceneNo,body.lang-ar #dots,body.lang-ar #stepDots,body.lang-ar .stat b{direction:ltr;unicode-bidi:plaintext}
+body.lang-ar #sceneNo{display:inline-block;direction:ltr}
