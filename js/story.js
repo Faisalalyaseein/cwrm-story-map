@@ -23,15 +23,18 @@ const RND = {}, cv = (n, pad = 0.3) => RND[n] || (RND[n] = L.canvas({ pane: n, p
 const setGroup = (n, st) => { const g = GROUPS[n]; if (!g) return; g.state = st; g.pane.style.opacity = { on: 1, dim: 0.3, off: 0 }[st]; g.pane.style.pointerEvents = st === 'off' ? 'none' : ''; g.pane.dataset.state = st; };
 Object.keys(GROUPS).forEach(n => setGroup(n, n === 'labels' || n === 'cities' ? 'on' : 'off'));
 
-/* basemaps: vector (offline, default), light gray / imagery (online) */
-const BASE = {
-  vector: L.geoJSON(D.countries, { pane: 'base', interactive: false, style: f => ({ color: '#B8C3CC', weight: 0.8, fillColor: f.properties.name === 'Iraq' ? '#F6F8F9' : '#E7ECEF', fillOpacity: 1 }) }),
-  light: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 16, crossOrigin: true }),
-  imagery: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 16, crossOrigin: true })
+/* basemaps: the bundled vector countries map is always underneath (works offline); an online tile layer sits on top (default OpenStreetMap in soft grey) and shows through only where tiles load */
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const VEC = L.geoJSON(D.countries, { pane: 'base', interactive: false, style: f => ({ color: '#B8C3CC', weight: 0.8, fillColor: f.properties.name === 'Iraq' ? '#F6F8F9' : '#E7ECEF', fillOpacity: 1 }) });
+const TILES = {
+  light: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, errorTileUrl: BLANK, className: 'tiles-soft' }),
+  streets: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, errorTileUrl: BLANK }),
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { subdomains: 'abc', attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17, errorTileUrl: BLANK })
 };
-map.createPane("base").style.zIndex = 200;
-let curBase = 'vector'; BASE.vector.addTo(map); map.attributionControl.addAttribution('Countries: Natural Earth (public domain)');
-const setBase = (b) => { map.removeLayer(BASE[curBase]); curBase = b; BASE[b].addTo(map); if (BASE[b].bringToBack) BASE[b].bringToBack(); document.body.classList.toggle('base-vector', b === 'vector'); };
+map.createPane('base').style.zIndex = 190;
+let curBase = 'light'; VEC.addTo(map); TILES.light.addTo(map); map.attributionControl.addAttribution('Countries: Natural Earth (public domain)');
+document.body.classList.add('base-vector');
+const setBase = (b) => { if (TILES[curBase]) map.removeLayer(TILES[curBase]); curBase = b; if (TILES[b]) TILES[b].addTo(map); };
 document.body.classList.add('base-vector');
 
 /* ---------- layers ---------- */
@@ -210,7 +213,7 @@ function setExplore(on, silent) {
   exploring = on; document.body.classList.toggle('explore', on); $('#exploreBtn').classList.toggle('on', on);
   if (on) {
     closeCard(); $('#panel').classList.remove('open'); const cur = stateOf(si, st);
-    $('#layers').innerHTML = `<h3>Map layers</h3>${EXP.map(([k, lab]) => `<label><input type="checkbox" data-k="${k}" ${(k === 'stations' ? true : (cur.layers[k] === 'on' || cur.layers[k] === 'dim')) ? 'checked' : ''}><span>${lab}</span></label>`).join('')}<h3>Basemap</h3><div class="bm"><button data-b="vector" class="${curBase === 'vector' ? 'on' : ''}">Vector (offline)</button><button data-b="light" class="${curBase === 'light' ? 'on' : ''}">Light</button><button data-b="imagery" class="${curBase === 'imagery' ? 'on' : ''}">Imagery</button></div><div class="fine">Free exploration. Canals and drains show more detail as you zoom in. Click a station for its card.</div>`;
+    $('#layers').innerHTML = `<h3>Map layers</h3>${EXP.map(([k, lab]) => `<label><input type="checkbox" data-k="${k}" ${(k === 'stations' ? true : (cur.layers[k] === 'on' || cur.layers[k] === 'dim')) ? 'checked' : ''}><span>${lab}</span></label>`).join('')}<h3>Basemap</h3><div class="bm"><button data-b="light" class="${curBase === 'light' ? 'on' : ''}">Light grey</button><button data-b="streets" class="${curBase === 'streets' ? 'on' : ''}">Streets</button><button data-b="topo" class="${curBase === 'topo' ? 'on' : ''}">Terrain</button><button data-b="vector" class="${curBase === 'vector' ? 'on' : ''}">Vector only (offline)</button></div><div class="fine">Free exploration. Canals and drains show more detail as you zoom in. Click a station for its card.</div>`;
     S.forEach(s => mk[s.id].addTo(stationLayer)); modMk.forEach(m => m.addTo(stationLayer)); set_exp_labels(true);
     [...Object.keys(GROUPS)].forEach(n => { if (n !== 'labels' && GROUPS[n].state === 'dim') setGroup(n, 'on'); }); syncNet();
   } else if (!silent) go(si, st, { forceCam: true });

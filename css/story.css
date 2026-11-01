@@ -106,3 +106,5 @@ body.nolabels .stn-label{display:none}
 #sources{position:absolute;z-index:1200;top:56px;right:0;bottom:0;width:min(440px,100vw);background:#fff;box-shadow:-6px 0 24px rgba(0,0,0,.2);padding:18px 22px;overflow:auto;transform:translateX(105%);transition:transform .35s ease}
 #sources.open{transform:none}#sources h2{margin:0 0 10px;color:var(--navy);font-size:20px}#sources ul{padding-left:18px;font-size:14.5px;line-height:1.5}#sources li{margin-bottom:8px}
 #srcX{position:absolute;right:12px;top:8px;border:0;background:none;font-size:28px;color:var(--muted)}
+
+.tiles-soft{filter:grayscale(1) brightness(1.06) contrast(.88)}
