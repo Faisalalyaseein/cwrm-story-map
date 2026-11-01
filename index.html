@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Hillah River System - CWRM monitoring concept (story map)</title>
+<link rel="stylesheet" href="lib/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/story.css">
+</head>
+<body>
+<header id="top">
+  <img src="img/giz.png" alt="GIZ" id="giz" onerror="this.style.display='none'">
+  <div id="brand"><b>Hillah River System</b><span>CWRM monitoring concept</span></div>
+  <div id="topBtns">
+    <button id="menuBtn" type="button" title="Scene list">Scenes</button>
+    <button id="notesBtn" type="button" title="Narrative notes (N)">Notes</button>
+    <button id="exploreBtn" type="button" title="Free exploration (E)">Explore</button>
+    <button id="srcBtn" type="button" title="Data sources">Sources</button>
+    <button id="fsBtn" type="button" title="Full screen (F)">Full screen</button>
+  </div>
+  <nav id="menu" aria-label="Scenes"></nav>
+</header>
+<main id="map" aria-label="Map"></main>
+
+<section id="scene" aria-live="polite">
+  <div class="row"><span id="sceneNo"></span><button id="sceneHide" type="button" title="Hide text (H)">Hide</button></div>
+  <h1 id="sceneTitle"></h1>
+  <p id="sceneLine"></p>
+  <div id="sceneStats"></div>
+</section>
+<div id="legend"></div>
+<div id="layers" class="panelbox"></div>
+<aside id="card"></aside>
+<aside id="panel"></aside>
+<aside id="notes"><button id="notesX" type="button" aria-label="Close notes">&times;</button><h2 id="notesTitle"></h2><p id="notesBody"></p><h4>WebGIS action</h4><p id="notesAction"></p></aside>
+
+<aside id="sources" class="side-panel"><button id="srcX" type="button" aria-label="Close sources">&times;</button><h2>Data sources</h2>
+<ul>
+<li><b>Basin outline:</b> HydroBASINS v1c, level 6 (HydroSHEDS; Lehner and Grill, 2013). The Euphrates basin is the set of sub-basins that drain to the Euphrates / Tigris junction at Qurna (about 552,000 km²); the Tigris basin is shown for context.</li>
+<li><b>Rivers and lakes of the basin, upstream Euphrates:</b> RIMES shapefiles supplied for the project. Publisher, date and licence are to be confirmed.</li>
+<li><b>Euphrates in Iraq:</b> derived from OpenStreetMap contributors (ODbL).</li>
+<li><b>Hillah River System, canals, drains, irrigation projects, governorates, monitoring stations and MOD points:</b> CWRM project data (Ministry of Water Resources and GIZ) and the monitoring network design V01 (2026-08-17). Station photographs from the design document.</li>
+<li><b>Cities:</b> OpenStreetMap contributors (ODbL). <b>Countries:</b> Natural Earth (public domain).</li>
+<li><b>Technology images:</b> illustrative only; source and licence to be confirmed.</li>
+<li><b>Statistics:</b> network lengths (2,978 km irrigation, 5,392 km drainage) from the CWRM master GeoPackage (study extent); the 25 km coverage radius is a working assumption, not a design criterion.</li>
+</ul></aside>
+
+<footer id="nav">
+  <button id="prev" type="button" aria-label="Back">&#10094; Back</button>
+  <div id="dots"></div><div id="stepDots"></div>
+  <button id="next" type="button" aria-label="Next">Next &#10095;</button>
+</footer>
+
+<script src="lib/leaflet/leaflet.js"></script>
+<script src="data/countries.js"></script>
+<script src="data/basin.js"></script>
+<script src="data/iraq.js"></script>
+<script src="data/cities.js"></script>
+<script src="data/stations.js"></script>
+<script src="data/reaches.js"></script>
+<script src="data/euphrates.js"></script>
+<script src="data/canals.js"></script>
+<script src="data/drains.js"></script>
+<script src="data/governorates.js"></script>
+<script src="data/projects.js"></script>
+<script src="data/modStations.js"></script>
+<script src="data/station_extra.js"></script>
+<script src="js/scenes.js"></script>
+<script src="js/story.js"></script>
+</body>
+</html>
