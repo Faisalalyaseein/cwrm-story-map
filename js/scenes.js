@@ -50,8 +50,8 @@ CWRM.scenes = [
   },
   {
     id: 'drainage', title: 'Drainage Network and Reuse Potential', line: 'Return flows are collected by drains and carried to the Main Outfall Drain.',
-    camera: { b: [[31.45, 44.15], [32.95, 45.9]] },
-    layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on' }, cities: ['Hillah', 'Diwaniyah'], labels: 'none', stationLabels: true,
+    camera: { b: [[31.45, 43.75], [33.5, 45.95]] },
+    layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on' }, cities: ['Hillah', 'Diwaniyah', 'Baghdad'], labels: 'none', stationLabels: true,
     stats: [{ v: '5,392 km', l: 'drainage network in the study extent' }, { v: '4', l: 'proposed monitoring points on the MOD' }],
     steps: [
       { layers: { reaches: 'dim', euph: 'dim', canals: 'dim', drains: 'off', mod: 'off' }, mods: false },
