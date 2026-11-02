@@ -34,7 +34,10 @@ CWRM.AR = {
     'Station details are in English, as in the design document.': 'تفاصيل المحطة بالإنجليزية كما وردت في وثيقة التصميم.',
     'Proposed monitoring point on the Main Outfall Drain': 'نقطة رصد مقترحة على المصب العام', 'Role': 'الدور',
     'One of four proposed stations along the Main Outfall Drain (the Third River): drainage water quality, salinity and pollution sources.': 'إحدى أربع محطات مقترحة على المصب العام (النهر الثالث): نوعية مياه البزل والملوحة ومصادر التلوث.',
-    'Parameters, priority, photographs': 'المعاملات والأولوية والصور',
+    'Parameters, priority, photographs': 'المعاملات والأولوية والصور', 'Priority and parameters': 'الأولوية والمعاملات', 'Monitoring type': 'نوع الرصد',
+    'Fixed Monitoring Station - Hydrological + WQ': 'محطة رصد ثابتة: هيدرولوجية + نوعية المياه',
+    'Site photograph from the MOD stations table': 'صورة الموقع من جدول محطات المصب العام',
+    'Locations and photographs from the MOD monitoring-stations table (received 2026-11-02); priority and parameters are to be confirmed.': 'المواقع والصور من جدول محطات الرصد على المصب العام (استُلم في 2026-11-02)؛ الأولوية والمعاملات قيد التأكيد.',
     'Point taken from the project map file; priority and parameters are to be confirmed.': 'النقطة مأخوذة من ملف خريطة المشروع؛ الأولوية والمعاملات قيد التأكيد.',
     'Planned location - photo': 'الموقع المخطط - صورة', 'Existing station - photo': 'محطة قائمة - صورة',
     // gaps statistics

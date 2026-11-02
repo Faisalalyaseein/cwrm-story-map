@@ -133,3 +133,9 @@ body.lang-ar #sceneLine,body.lang-ar #notes p{line-height:1.7}
 #langBtn{font-weight:700}
 body.lang-ar #sceneNo,body.lang-ar #dots,body.lang-ar #stepDots,body.lang-ar .stat b{direction:ltr;unicode-bidi:plaintext}
 body.lang-ar #sceneNo{display:inline-block;direction:ltr}
+
+#logos{display:flex;align-items:center;gap:12px;background:#fff;border-radius:8px;padding:4px 12px}
+#logos #giz{height:34px;background:none;padding:0;border-radius:0}
+#logos #bmz{height:36px;width:auto}
+#logos .sep{width:1px;height:30px;background:#D5DDE4}
+@media (max-width:900px){#logos{padding:3px 8px;gap:8px}#logos #giz{height:22px}#logos #bmz{height:24px}#logos .sep{height:22px}}
