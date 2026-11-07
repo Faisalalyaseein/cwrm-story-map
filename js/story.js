@@ -5,7 +5,7 @@
 const D = window.CWRM, SC = D.scenes, $ = (s, r = document) => r.querySelector(s);
 const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 /* colour logic (comment of 2026-11-01): freshwater = blues, drainage water = olive / ochre, stations keep their priority colours. Change here only. */
-const PAL = { river: '#0B4F9E', branch: '#1565C0', canal: '#2FA4E7', basinRiver: '#5BA7DC', lake: '#9BCDEB', drain: '#B5651D', mod: '#7A3E0B', basin: '#1565C0', tigris: '#7C8FA0',
+const PAL = { river: '#0B4F9E', branch: '#1565C0', canal: '#2FA4E7', basinRiver: '#5BA7DC', lake: '#9BCDEB', drain: '#B5651D', mod: '#7A3E0B', pol: '#8E24AA', basin: '#1565C0', tigris: '#7C8FA0',
   proj: '#2E6B1F', gov: '#6B7785', govHi: '#E8710A', navy: '#0B3C5D', p1: '#E8710A', p2: '#2A9D8F', p3: '#7B8794', alert: '#C62828', ok: '#2A9D8F', dead: '#8C8C8C', iraq: '#0B3C5D' };
 const PCOL = { 1: PAL.p1, 2: PAL.p2, 3: PAL.p3 }, PLAB = { 1: '1st priority', 2: '2nd priority', 3: '3rd priority' };
 const hav = (a, b, c, d) => { const r = Math.PI / 180, dl = (c - a) * r, dn = (d - b) * r, x = Math.sin(dl / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dn / 2) ** 2; return 12742 * Math.asin(Math.sqrt(x)); };
@@ -21,7 +21,7 @@ document.body.classList.toggle('lang-ar', lang === 'ar');
 /* ---------- map and panes ---------- */
 const map = L.map('map', { zoomControl: false, zoomSnap: 0.25, zoomDelta: 0.5, attributionControl: true, minZoom: 4, maxZoom: 16, preferCanvas: true });
 L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
-const Z = { basin: 300, iraq: 310, gov: 320, lakes: 330, basinRivers: 340, euph: 360, projects: 370, canals: 380, drains: 390, mod: 395, reaches: 400, gaps: 410, hrsBox: 420, cities: 430 };
+const Z = { basin: 300, iraq: 310, gov: 320, lakes: 330, basinRivers: 340, euph: 360, projects: 370, canals: 380, drains: 390, mod: 395, reaches: 400, gaps: 410, pollution: 415, hrsBox: 420, cities: 430 };
 const GROUPS = {};
 Object.entries(Z).forEach(([n, z]) => { const p = map.createPane(n); p.style.zIndex = z; p.classList.add('fade'); GROUPS[n] = { pane: p, state: 'off' }; });
 map.createPane('stations').style.zIndex = 650; map.createPane('labels').style.zIndex = 640; $('.leaflet-pane.leaflet-labels-pane') && 0;
@@ -36,7 +36,8 @@ const VEC = L.geoJSON(D.countries, { pane: 'base', interactive: false, style: f 
 const TILES = {
   light: (function () { try { return L.maplibreGL({ style: 'https://tiles.openfreemap.org/styles/positron', attribution: '&copy; <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &copy; OpenMapTiles, data from OpenStreetMap', preserveDrawingBuffer: true }); } catch (e) { return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, errorTileUrl: BLANK, className: 'tiles-soft' }); } })(),
   streets: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, errorTileUrl: BLANK }),
-  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { subdomains: 'abc', attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17, errorTileUrl: BLANK })
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { subdomains: 'abc', attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17, errorTileUrl: BLANK }),
+  imagery: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 18, errorTileUrl: BLANK })
 };
 map.createPane('base').style.zIndex = 190;
 let curBase = 'light'; VEC.addTo(map); TILES.light.addTo(map); map.attributionControl.addAttribution('Countries: Natural Earth (public domain)');
@@ -71,8 +72,8 @@ function focusBranch(name) { lyReach.eachLayer(l => { const on = !name || branch
 const net = [];
 const feats = (fc, fn) => ({ type: 'FeatureCollection', features: fc.features.filter(fn) });
 const dead = (s) => s === 'Non Functioning' || s === 'Abandoned', cls = (c) => (c == null ? 4 : c);
-function addNet(fc, grp, minZoom, style, pop) { if (!fc.features.length) return; net.push({ grp, minZoom, layer: L.geoJSON(fc, { pane: grp, renderer: cv(grp, 0.5), style: () => style, onEachFeature: (f, l) => pop && l.bindTooltip(pop(f.properties), { sticky: true }) }) }); }
-const cPop = (p) => `<b>${esc(p.n || 'Irrigation canal')}</b><br>${p.l != null ? (+p.l).toFixed(1) : '-'} km &middot; ${esc(p.s || 'not surveyed')}`, dPop = (p) => `<b>${esc(p.n || 'Drain')}</b>${p.m ? ' (Main Outfall Drain)' : ''}<br>${p.l != null ? (+p.l).toFixed(1) : '-'} km &middot; ${esc(p.s || 'not surveyed')}`;
+function addNet(fc, grp, minZoom, style, pop) { if (!fc.features.length) return; net.push({ grp, minZoom, layer: L.geoJSON(fc, { pane: grp, renderer: cv(grp, 0.5), style: () => style, onEachFeature: (f, l) => { if (!pop) return; l.bindTooltip(pop(f.properties), { sticky: true }); l.on('click', (e) => { if (exploring) { L.DomEvent.stopPropagation(e); L.popup().setLatLng(e.latlng).setContent(pop(f.properties)).openOn(map); } }); } }) }); }
+const cPop = (p) => `<b>${esc(p.n || 'Irrigation canal')}</b><br>${p.l != null ? (+p.l).toFixed(1) : '-'} km &middot; ${esc(p.s || 'not surveyed')}`, dPop = (p) => `<b>${esc(p.n || 'Drain')}</b>${p.m && !/Outfall/i.test(p.n || '') ? ' (Main Outfall Drain)' : ''}<br>${p.l != null ? (+p.l).toFixed(1) : '-'} km &middot; ${esc(p.s || 'not surveyed')}`;
 [[c => c <= 1, 3, 7], [c => c === 2, 2, 8], [c => c === 3, 1.4, 9], [c => c >= 4, 1, 10]].forEach(([t, w, z]) => addNet(feats(D.canals, f => !dead(f.properties.s) && t(cls(f.properties.c))), 'canals', z, { color: PAL.canal, weight: w, opacity: 0.95 }, cPop));
 [[f => f.properties.j && !f.properties.m, 3.6, 7], [f => !f.properties.j && !f.properties.m && cls(f.properties.c) <= 2, 2.4, 8], [f => !f.properties.j && !f.properties.m && cls(f.properties.c) === 3, 1.5, 9], [f => !f.properties.j && !f.properties.m && cls(f.properties.c) >= 4, 1, 10]].forEach(([t, w, z]) => addNet(feats(D.drains, f => !dead(f.properties.s) && t(f)), 'drains', z, { color: PAL.drain, weight: w, opacity: 0.95 }, dPop));
 addNet(feats(D.drains, f => f.properties.m), 'mod', 0, { color: PAL.mod, weight: 5, opacity: 1, lineCap: 'round' }, dPop);
@@ -80,6 +81,10 @@ addNet(D.modUp, 'mod', 0, { color: PAL.mod, weight: 4.4, opacity: 1, lineCap: 'r
 function syncNet() { const z = map.getZoom(); net.forEach(n => { const want = GROUPS[n.grp].state !== 'off' && z >= n.minZoom; if (want && !map.hasLayer(n.layer)) n.layer.addTo(map); if (!want && map.hasLayer(n.layer)) map.removeLayer(n.layer); }); }
 map.on('zoomend', syncNet);
 const lyProj = L.geoJSON(D.projects, { pane: 'projects', renderer: cv('projects'), style: f => ({ color: PAL.proj, weight: 2, dashArray: f.properties.status === 'Partially Developed' ? null : '7 5', fillColor: PAL.proj, fillOpacity: 0.05 }), onEachFeature: (f, l) => l.bindTooltip(`<b>${esc(f.properties.name)}</b> (${esc(f.properties.code)})<br>${esc(f.properties.status)} &middot; ${Math.round(f.properties.ha).toLocaleString()} ha`, { sticky: true }) }).addTo(map);
+// reported pollution sources (Ministry tables; sensitive fields left out in data/pollution.js)
+const POL = D.pollution || { features: [] }, PI = D.pollutionInfo || { total: 0, located: 0, unlocated: 0 }, polMk = {};
+const lyPol = L.geoJSON(POL, { pane: 'pollution', pointToLayer: (f, ll) => L.circleMarker(ll, { pane: 'pollution', renderer: cv('pollution'), radius: 6.5, color: '#fff', weight: 1.8, fillColor: PAL.pol, fillOpacity: 1, bubblingMouseEvents: false }),
+  onEachFeature: (f, l) => { polMk[f.properties.id] = l; l.bindTooltip(() => `<b>${esc(t(f.properties.cat))}</b><br>${esc(t(f.properties.dir))}`, { sticky: true }); l.on('click', () => openPol(f.properties.id)); } }).addTo(map);
 // Hillah River System box
 const lyBox = L.layerGroup([L.rectangle([[31.35, 44.15], [32.85, 45.7]], { pane: 'hrsBox', renderer: cv('hrsBox'), color: PAL.p1, weight: 3, dashArray: '10 6', fillColor: PAL.p1, fillOpacity: 0.12, interactive: false })]).addTo(map);
 L.marker([32.95, 44.9], { pane: 'hrsBox', interactive: false, icon: L.divIcon({ className: '', html: `<div class="lab hrs">${lbl('other', 'Hillah River System')}</div>` }) }).addTo(lyBox);
@@ -173,9 +178,17 @@ function openMod(i) { const m = modMk[i], p = m._p, ll = m.getLatLng(); cardId =
   <dl><div class="r"><dt>${t('Monitoring type')}</dt><dd>${t(p.type)}</dd></div><div class="r"><dt>${t('Role')}</dt><dd>${t('One of four proposed stations along the Main Outfall Drain (the Third River): drainage water quality, salinity and pollution sources.')}</dd></div><div class="r"><dt>${t('Coordinates')}</dt><dd dir="ltr">${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}</dd></div><div class="r"><dt>${t('Priority and parameters')}</dt><dd>${na()}</dd></div></dl><div class="fine">${t('Locations and photographs from the MOD monitoring-stations table (received 2026-11-02); priority and parameters are to be confirmed.')}</div>`;
   $('#cardX').onclick = closeCard; $('#card').classList.remove('tech-on'); $('#card').classList.add('open'); document.body.classList.add('card-open'); }
 
+const POLQ = { ok: 'Location as given in the source table', corrected: 'Location corrected by the project (an error in the source coordinates); approximate', estimated: 'Location estimated from the description; approximate' };
+function openPol(id) { const l = polMk[id]; if (!l) return; const p = l.feature.properties, ll = l.getLatLng(); cardId = 'POL' + id; curCard = { pol: id };
+  const row = (k, v, rtl) => v ? `<div class="r"><dt>${t(k)}</dt><dd${rtl ? ' dir="rtl" class="arv"' : ''}>${rtl ? esc(v) : v}</dd></div>` : '';
+  $('#card').innerHTML = `<div class="chead"><span class="badge dot" style="background:${PAL.pol}"></span><div><h3>${esc(t(p.cat))}</h3><span class="sub">${t('Reported pollution source')} &middot; ${esc(t(p.dir))}</span></div><button class="x" id="cardX" type="button" aria-label="Close">&times;</button></div>
+  <dl>${row('Outlet (as recorded, Arabic)', p.ar, 1)}${row('Receiving water (as recorded, Arabic)', p.w, 1)}${row('Type (as recorded, Arabic)', p.tp, 1)}${row('Location', t(POLQ[p.q] || POLQ.ok))}<div class="r"><dt>${t('Coordinates')}</dt><dd dir="ltr">${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}</dd></div></dl>
+  <div class="fine">${t('From the Ministry of Water Resources pollution-source tables (Diwaniyah, Babylon, Muthanna). Descriptions stay in Arabic as recorded. Discharge values, responsible parties and follow-up actions are not shown.')}</div>`;
+  $('#cardX').onclick = closeCard; $('#card').classList.remove('tech-on'); $('#card').classList.add('open'); document.body.classList.add('card-open'); }
+
 /* ---------- scene engine ---------- */
 let si = 0, st = 0, exploring = false, first = true;
-const LEG = { euph: ['line', PAL.river, 4, 'Euphrates River (freshwater)'], reaches: ['line', PAL.branch, 4, 'Hillah River System (branches)'], canals: ['line', PAL.canal, 2, 'Irrigation canals (freshwater)'], drains: ['line', PAL.drain, 2, 'Drainage canals (drainage water)'], mod: ['line', PAL.mod, 5, 'Main Outfall Drain (MOD)'], projects: ['dash', PAL.proj, 2, 'Irrigation projects'], basinRivers: ['line', PAL.basinRiver, 1.5, 'Rivers of the basin'], lakes: ['box', PAL.lake, 0, 'Lakes and reservoirs'], basin: ['box', 'rgba(21,101,192,.25)', 0, 'Euphrates basin'], iraq: ['dash', PAL.iraq, 2, 'Iraq'], hrsBox: ['dash', PAL.p1, 2, 'Hillah River System'], gaps: ['line', PAL.ok, 5, 'River within 25 km of an existing station'] };
+const LEG = { euph: ['line', PAL.river, 4, 'Euphrates River (freshwater)'], reaches: ['line', PAL.branch, 4, 'Hillah River System (branches)'], canals: ['line', PAL.canal, 2, 'Irrigation canals (freshwater)'], drains: ['line', PAL.drain, 2, 'Drainage canals (drainage water)'], mod: ['line', PAL.mod, 5, 'Main Outfall Drain (MOD)'], projects: ['dash', PAL.proj, 2, 'Irrigation projects'], basinRivers: ['line', PAL.basinRiver, 1.5, 'Rivers of the basin'], lakes: ['box', PAL.lake, 0, 'Lakes and reservoirs'], basin: ['box', 'rgba(21,101,192,.25)', 0, 'Euphrates basin'], iraq: ['dash', PAL.iraq, 2, 'Iraq'], hrsBox: ['dash', PAL.p1, 2, 'Hillah River System'], gaps: ['line', PAL.ok, 5, 'River within 25 km of an existing station'], pollution: ['dot', PAL.pol, 0, 'Reported pollution sources'] };
 const stateOf = (i, j) => { const sc = SC[i], stp = (sc.steps && sc.steps[j]) || {}; return Object.assign({}, sc, stp, { layers: Object.assign({}, sc.layers, stp.layers), camera: stp.camera || sc.camera }); };
 function fitCamera(cam, instant) { const w = innerWidth, narrow = w < 900; const tl = cam.pad ? [cam.pad[0], cam.pad[1]] : (narrow ? [16, 64] : [(exploring ? 330 : 400), 76]), br = cam.pad ? [cam.pad[2], cam.pad[3]] : (narrow ? [16, 250] : [(cardId ? 400 : 30), 100]); const o = { paddingTopLeft: tl, paddingBottomRight: br, animate: !instant, duration: 1.8, easeLinearity: 0.2, maxZoom: 12 }; if (instant) map.fitBounds(cam.b, o); else map.flyToBounds(cam.b, o); }
 function applyState(S0, camChanged, instant) {
@@ -218,8 +231,8 @@ function applyState(S0, camChanged, instant) {
 }
 function legend(S0) {
   const items = []; Object.entries(S0.layers).forEach(([n, v]) => { if (v === 'on' && LEG[n]) items.push(LEG[n]); });
-  const sw = (t, c, w) => t === 'line' ? `<i class="ln" style="border-top:${Math.max(2, w)}px solid ${c}"></i>` : t === 'dash' ? `<i class="ln" style="border-top:2px dashed ${c}"></i>` : `<i class="bx" style="background:${c}"></i>`;
-  const stn = S0.stations && S0.stations !== 'none' ? [`<div class="lg"><i class="dm" style="background:${PAL.navy}"></i>${t('Existing station')}</div>`].concat(S0.stations.priority || S0.stations.gapSites ? [1, 2, 3].filter(p => !S0.stations.priority || S0.stations.priority.includes(p) || S0.stations.gapSites).map(p => `<div class="lg"><i class="dm ho" style="border-color:${PCOL[p]}"></i>${t('Proposed')}${lang === 'ar' ? '، ' : ', '}${t(PLAB[p])}</div>`) : []) : [];
+  const sw = (t, c, w) => t === 'line' ? `<i class="ln" style="border-top:${Math.max(2, w)}px solid ${c}"></i>` : t === 'dash' ? `<i class="ln" style="border-top:2px dashed ${c}"></i>` : t === 'dot' ? `<i class="dt" style="background:${c}"></i>` : `<i class="bx" style="background:${c}"></i>`;
+  const stn = S0.stations && S0.stations !== 'none' ? (S0.noExisting ? [] : [`<div class="lg"><i class="dm" style="background:${PAL.navy}"></i>${t('Existing station')}</div>`]).concat(S0.stations.priority || S0.stations.gapSites ? [1, 2, 3].filter(p => !S0.stations.priority || S0.stations.priority.includes(p) || S0.stations.gapSites).map(p => `<div class="lg"><i class="dm ho" style="border-color:${PCOL[p]}"></i>${t('Proposed')}${lang === 'ar' ? '، ' : ', '}${t(PLAB[p])}</div>`) : []) : [];
   const mods = (S0.mods || S0.id === 'decision') ? [`<div class="lg"><i class="sqr" style="border-color:${PAL.mod}"></i>${t('Proposed MOD station')}</div>`] : [];
   const l = items.map(([ty, c, w, lab]) => `<div class="lg">${sw(ty, c, w)}${esc(t(lab))}</div>`).concat(stn, mods); $('#legend').innerHTML = l.length ? l.join('') : ''; $('#legend').style.display = l.length ? '' : 'none';
 }
@@ -230,20 +243,89 @@ const prev = () => { if (exploring) return; if (st > 0) go(si, st - 1, { forceCa
 function writeHash() { const h = `#s=${si + 1}${st ? '&p=' + st : ''}${lang === 'ar' ? '&l=ar' : ''}`; if (location.hash !== h) history.replaceState(null, '', h); }
 function readHash() { const m = Object.fromEntries((location.hash.slice(1) || '').split('&').map(x => x.split('='))); return [Math.max(0, (+m.s || 1) - 1), +m.p || 0]; }
 
-/* ---------- explore mode ---------- */
-const EXP = [['basin', 'Euphrates and Tigris basins'], ['iraq', 'Iraq'], ['euph', 'Euphrates River'], ['basinRivers', 'Rivers of the basin'], ['lakes', 'Lakes and reservoirs'], ['reaches', 'Hillah River System (branches)'], ['canals', 'Irrigation canals'], ['drains', 'Drainage canals'], ['mod', 'Main Outfall Drain'], ['projects', 'Irrigation projects'], ['gov', 'Governorate boundaries'], ['stations', 'Monitoring stations']];
-function setExplore(on, silent) {
-  exploring = on; document.body.classList.toggle('explore', on); $('#exploreBtn').classList.toggle('on', on);
-  if (on) {
-    closeCard(); $('#panel').classList.remove('open'); const cur = stateOf(si, st);
-    $('#layers').innerHTML = `<h3>${t('Map layers')}</h3>${EXP.map(([k, lab]) => `<label><input type="checkbox" data-k="${k}" ${(k === 'stations' ? true : (cur.layers[k] === 'on' || cur.layers[k] === 'dim')) ? 'checked' : ''}><span>${t(lab)}</span></label>`).join('')}<h3>${t('Basemap')}</h3><div class="bm"><button data-b="light" class="${curBase === 'light' ? 'on' : ''}">${t('Light grey')}</button><button data-b="streets" class="${curBase === 'streets' ? 'on' : ''}">${t('Streets')}</button><button data-b="topo" class="${curBase === 'topo' ? 'on' : ''}">${t('Terrain')}</button><button data-b="vector" class="${curBase === 'vector' ? 'on' : ''}">${t('Vector only (offline)')}</button></div><div class="fine">${t('Free exploration. Canals and drains show more detail as you zoom in. Click a station for its card.')}</div>`;
-    S.forEach(s => mk[s.id].addTo(stationLayer)); modMk.forEach(m => m.addTo(stationLayer)); set_exp_labels(true);
-    [...Object.keys(GROUPS)].forEach(n => { if (n !== 'labels' && GROUPS[n].state === 'dim') setGroup(n, 'on'); }); syncNet();
-  } else if (!silent) go(si, st, { forceCam: true });
+/* ---------- explore mode (Q&A): topics, station search, filters, layers, basemap, link to the full interactive map ---------- */
+const EXP = [['basin', 'Euphrates and Tigris basins'], ['iraq', 'Iraq'], ['euph', 'Euphrates River'], ['basinRivers', 'Rivers of the basin'], ['lakes', 'Lakes and reservoirs'], ['reaches', 'Hillah River System (branches)'], ['canals', 'Irrigation canals'], ['drains', 'Drainage canals'], ['mod', 'Main Outfall Drain'], ['projects', 'Irrigation projects'], ['pollution', 'Reported pollution sources'], ['gaps', 'River within 25 km of an existing station'], ['gov', 'Governorate boundaries'], ['stations', 'Monitoring stations']];
+const CHIPS = [['existing', 'Existing'], ['p1', '1st priority'], ['p2', '2nd priority'], ['p3', '3rd priority'], ['mod', 'MOD stations']];
+const EX = { chips: new Set(CHIPS.map(c => c[0])), stationsOn: true, branchKey: null, gapOnly: false, topic: null, q: '', open: { topics: true, find: false, show: false, layers: true, base: false } };
+const exVisible = (s) => EX.stationsOn && (s.status === 'existing' ? EX.chips.has('existing') : EX.chips.has('p' + s.priority)) && (!EX.branchKey || s.branchKey === EX.branchKey) && (!EX.gapOnly || s.status === 'existing' || s.gapSite);
+function refreshStations() {
+  stationLayer.clearLayers(); linkLayer.clearLayers();
+  S.forEach(s => { if (exVisible(s)) mk[s.id].addTo(stationLayer); });
+  modMk.forEach(m => { if (EX.stationsOn && EX.chips.has('mod')) m.addTo(stationLayer); });
 }
-function set_exp_labels(on) { S.forEach(s => mk[s.id].openTooltip && mk[s.id].getTooltip()); }
-$('#layers').addEventListener('change', e => { const k = e.target.dataset.k; if (!k) return; if (k === 'stations') { S.forEach(s => e.target.checked ? mk[s.id].addTo(stationLayer) : stationLayer.removeLayer(mk[s.id])); modMk.forEach(m => e.target.checked ? m.addTo(stationLayer) : stationLayer.removeLayer(m)); return; } setGroup(k, e.target.checked ? 'on' : 'off'); syncNet(); });
-$('#layers').addEventListener('click', e => { const b = e.target.closest('[data-b]'); if (b) { setBase(b.dataset.b); $('#layers').querySelectorAll('[data-b]').forEach(x => x.classList.toggle('on', x === b)); } });
+function resetExplore() { EX.chips = new Set(CHIPS.map(c => c[0])); EX.stationsOn = true; EX.branchKey = null; EX.gapOnly = false; EX.topic = null; EX.q = ''; focusBranch(''); }
+const IS_FILE = location.protocol === 'file:', FULL_URL = IS_FILE ? 'interactive/index.html' : 'https://faisalalyaseein.github.io/hillah-monitoring-network/';
+function openFull() { const c = map.getCenter(), s = cardId && byId[cardId] ? '&s=' + cardId : ''; window.open(FULL_URL + '#c=' + c.lat.toFixed(4) + ',' + c.lng.toFixed(4) + ',' + map.getZoom() + s + '&from=' + (si + 1) + '_' + st, '_blank'); }
+function renderExplore() {
+  const sec = (k, title, body) => `<details data-sec="${k}" ${EX.open[k] ? 'open' : ''}><summary>${t(title)}</summary>${body}</details>`;
+  const topics = (D.topics || []).map(tp => `<button type="button" class="tp ${EX.topic === tp.id ? 'on' : ''}" data-tp="${tp.id}">${esc(t(tp.title))}</button>`).join('');
+  const chips = CHIPS.map(([k, l]) => `<button type="button" class="chip ${EX.chips.has(k) ? 'on' : ''}" data-chip="${k}">${t(l)}</button>`).join('');
+  const topicNote = (EX.branchKey || EX.gapOnly) ? `<div class="fine">${t('Topic filter on')} &middot; <a href="#" data-clr="1">${t('Show all stations')}</a></div>` : '';
+  const layers = EXP.map(([k, lab]) => `<label><input type="checkbox" data-k="${k}" ${(k === 'stations' ? EX.stationsOn : GROUPS[k].state !== 'off') ? 'checked' : ''}><span>${t(lab)}</span></label>`).join('');
+  const bmb = (b, lab) => `<button data-b="${b}" class="${curBase === b ? 'on' : ''}">${t(lab)}</button>`;
+  $('#layers').innerHTML = `<div class="exhead"><b>${t('Explore')}</b><button type="button" id="exBack">${t('Back to story')}</button></div>`
+    + sec('topics', 'Q&A topics', `<div class="tps">${topics}</div>`)
+    + sec('find', 'Find a station', `<input id="exQ" type="search" placeholder="${esc(t('Station ID or name'))}" value="${esc(EX.q)}" autocomplete="off"><div id="exRes"></div>`)
+    + sec('show', 'Stations shown', `<div class="chips">${chips}</div>${topicNote}`)
+    + sec('layers', 'Map layers', layers)
+    + sec('base', 'Basemap', `<div class="bm">${bmb('light', 'Light grey')}${bmb('streets', 'Streets')}${bmb('topo', 'Terrain')}${bmb('imagery', 'Imagery')}${bmb('vector', 'Vector only (offline)')}</div><div class="fine">${t('Imagery, streets and terrain need internet.')}</div>`)
+    + `<div class="exact"><button type="button" id="exFull">${t('Open full interactive map')}</button><button type="button" id="exPrint">${t('Print / save as PDF')}</button></div><div class="fine">${t('Free exploration. Canals and drains show more detail as you zoom in. Click a station, a canal or a drain for its details.')}</div>`;
+  fillResults();
+}
+function fillResults() {
+  const q = EX.q.trim().toLowerCase(), box = $('#exRes'); if (!box) return;
+  if (!q) { box.innerHTML = `<div class="fine">${t('Type an ID (for example H-01) or part of a name.')}</div>`; return; }
+  const all = S.map(s => ({ id: s.id, name: s.name, sub: s.status === 'existing' ? t('Existing station') : t(PLAB[s.priority]), kind: 's' })).concat(modMk.map((m, i) => ({ id: m._p.id, name: m._p.short || m._p.name, sub: t('Proposed MOD station'), kind: 'm', i })));
+  const res = all.filter(x => (x.id + ' ' + x.name).toLowerCase().includes(q)).slice(0, 8);
+  box.innerHTML = res.length ? res.map(x => `<button type="button" class="res" data-st="${esc(x.id)}" data-kind="${x.kind}" data-i="${x.i == null ? '' : x.i}"><b>${esc(x.id)}</b> ${esc(x.name)}<small>${esc(x.sub)}</small></button>`).join('') : `<div class="fine">${t('No match')}</div>`;
+}
+function pickStation(id, kind, i) {
+  if (kind === 'm') { const m = modMk[+i]; if (!stationLayer.hasLayer(m)) m.addTo(stationLayer); map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 12), { duration: 1.2 }); openMod(+i); }
+  else { const s = byId[id]; if (!stationLayer.hasLayer(mk[id])) mk[id].addTo(stationLayer); map.flyTo([s.lat, s.lng], Math.max(map.getZoom(), 12), { duration: 1.2 }); openCard(id, false); }
+}
+function topicBounds(f) {
+  if (f.b) return L.latLngBounds(f.b);
+  if (f.branch) { let b = null; lyReach.eachLayer(l => { if (branchOf(l.feature.properties.branch) === f.branch) { const lb = l.getBounds(); b = b ? b.extend(lb) : L.latLngBounds(lb.getSouthWest(), lb.getNorthEast()); } }); return b; }
+  if (f.mod) return L.latLngBounds(modMk.map(m => m.getLatLng())).pad(0.5);
+  if (f.pol) return lyPol.getBounds().pad(0.08);
+  return null;
+}
+function applyTopic(id) {
+  const tp = (D.topics || []).find(x => x.id === id); if (!tp) return;
+  EX.topic = id; EX.branchKey = tp.branchKey || null; EX.gapOnly = !!tp.gapOnly; EX.stationsOn = true; EX.chips = new Set(tp.chips || []);
+  const on = new Set(tp.layers || []); EXP.forEach(([k]) => { if (k !== 'stations') setGroup(k, on.has(k) ? 'on' : 'off'); }); syncNet();
+  focusBranch((tp.fit && tp.fit.branch) || ''); closeCard(); refreshStations(); renderExplore();
+  const f = tp.fit || {}, b = topicBounds(f);
+  if (b) fitCamera({ b }, false); else if (f.st && byId[f.st]) map.flyTo([byId[f.st].lat, byId[f.st].lng], f.z || 11, { duration: 1.6 });
+  if (tp.open) setTimeout(() => { if (exploring && EX.topic === id) openCard(tp.open); }, 1700);
+}
+function setExplore(on, silent) {
+  const was = exploring; exploring = on; document.body.classList.toggle('explore', on); $('#exploreBtn').classList.toggle('on', on);
+  if (on) {
+    if (!was) { closeCard(); $('#panel').classList.remove('open'); resetExplore(); document.body.classList.remove('nolabels'); [...Object.keys(GROUPS)].forEach(n => { if (n !== 'labels' && GROUPS[n].state === 'dim') setGroup(n, 'on'); }); syncNet(); refreshStations(); }
+    renderExplore();
+  } else { if (was && curBase !== 'light') setBase('light'); if (!silent) go(si, st, { forceCam: true }); }
+}
+$('#layers').addEventListener('change', e => { const k = e.target.dataset.k; if (!k) return; if (k === 'stations') { EX.stationsOn = e.target.checked; refreshStations(); return; } setGroup(k, e.target.checked ? 'on' : 'off'); syncNet(); });
+$('#layers').addEventListener('input', e => { if (e.target.id === 'exQ') { EX.q = e.target.value; fillResults(); } });
+$('#layers').addEventListener('toggle', e => { const k = e.target.dataset && e.target.dataset.sec; if (k) EX.open[k] = e.target.open; }, true);
+$('#layers').addEventListener('click', e => {
+  const x = e.target; let b;
+  if ((b = x.closest('[data-b]'))) { setBase(b.dataset.b); $('#layers').querySelectorAll('[data-b]').forEach(y => y.classList.toggle('on', y === b)); }
+  else if ((b = x.closest('[data-tp]'))) applyTopic(b.dataset.tp);
+  else if ((b = x.closest('[data-chip]'))) { const k = b.dataset.chip; EX.chips.has(k) ? EX.chips.delete(k) : EX.chips.add(k); EX.topic = null; refreshStations(); renderExplore(); }
+  else if ((b = x.closest('[data-clr]'))) { e.preventDefault(); EX.branchKey = null; EX.gapOnly = false; EX.topic = null; focusBranch(''); refreshStations(); renderExplore(); }
+  else if ((b = x.closest('[data-st]'))) pickStation(b.dataset.st, b.dataset.kind, b.dataset.i);
+  else if (x.closest('#exBack')) setExplore(false);
+  else if (x.closest('#exFull')) openFull();
+  else if (x.closest('#exPrint')) window.print();
+});
+window.addEventListener('beforeprint', () => {
+  document.body.classList.add('printing'); map.invalidateSize();
+  if (exploring) { const lay = {}; Object.keys(GROUPS).forEach(n => { if (GROUPS[n].state === 'on' && LEG[n]) lay[n] = 'on'; }); const pr = [1, 2, 3].filter(p => EX.chips.has('p' + p)), anyS = EX.stationsOn && (EX.chips.has('existing') || pr.length);
+    legend({ layers: lay, stations: anyS ? { priority: pr } : 'none', noExisting: !EX.chips.has('existing'), mods: EX.stationsOn && EX.chips.has('mod') }); }
+});
+window.addEventListener('afterprint', () => { document.body.classList.remove('printing'); map.invalidateSize(); if (!exploring) legend(stateOf(si, st)); });
 
 /* ---------- UI ---------- */
 $('#dots').innerHTML = SC.map((s, i) => `<button type="button" title="${i + 1}. ${esc(s.title)}" aria-label="Scene ${i + 1}: ${esc(s.title)}"><span>${i + 1}</span></button>`).join('');
@@ -283,7 +365,7 @@ function applyLang() {
   $('#dots').querySelectorAll('button').forEach((b, i) => { const ti = lang === 'ar' && AR.scenes[i] ? AR.scenes[i].title : SC[i].title; b.title = (i + 1) + '. ' + ti; });
   try { localStorage.setItem('cwrm_story_lang', lang); } catch (e) {}
   if (exploring) setExplore(true, true); else applyState(Object.assign(stateOf(si, st), { id: SC[si].id }), false, true);
-  if (cardId && curCard && !exploring) { if (curCard.mod != null) openMod(curCard.mod); else renderCard(curCard); }
+  if (cardId && curCard && !exploring) { if (curCard.mod != null) openMod(curCard.mod); else if (curCard.pol != null) openPol(curCard.pol); else renderCard(curCard); }
   writeHash();
 }
 const setLang = (l) => { lang = l; applyLang(); };

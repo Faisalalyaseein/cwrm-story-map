@@ -36,6 +36,8 @@ body.explore #scene{display:none}
 .lg{display:flex;align-items:center;gap:9px;margin:4px 0}
 .lg .ln{display:inline-block;width:28px;height:0;flex:none}.lg .bx{display:inline-block;width:28px;height:12px;border-radius:2px;border:1px solid rgba(0,0,0,.2);flex:none}
 .lg .dm{display:inline-block;width:12px;height:12px;transform:rotate(45deg);flex:none;margin:0 8px}.lg .dm.ho{background:#fff;border:3px solid}
+.lg .dt{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3);flex:none;margin:0 8px}
+.arv{font-family:'Segoe UI',Tahoma,Arial,sans-serif;font-size:15px;unicode-bidi:plaintext}
 .lg .sqr{display:inline-block;width:13px;height:13px;border:3px solid;background:#fff;border-radius:2px;flex:none;margin:0 7.5px}
 /* nav bar */
 #nav{position:absolute;z-index:1100;left:50%;transform:translateX(-50%);bottom:14px;display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow);max-width:calc(100vw - 20px)}
@@ -61,7 +63,7 @@ body.explore::after{content:"Explore mode: press E to return to the story";posit
 .chead{display:flex;gap:12px;align-items:flex-start;padding:14px 14px 8px}
 .chead h3{margin:0;font-size:20px;color:var(--navy)}.chead .sub{font-size:13px;color:var(--muted)}.chead .x{margin-left:auto;border:0;background:none;font-size:28px;line-height:1;color:var(--muted)}
 .warn{color:var(--alert)}
-.badge{width:16px;height:16px;transform:rotate(45deg);margin:6px 6px 0 4px;flex:none;border-radius:2px}.badge.sq{transform:none;background:#fff;border:4px solid;border-radius:3px}
+.badge{width:16px;height:16px;transform:rotate(45deg);margin:6px 6px 0 4px;flex:none;border-radius:2px}.badge.sq{transform:none;background:#fff;border:4px solid;border-radius:3px}.badge.dot{transform:none;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
 .photo{position:relative;margin:0 14px 8px;border-radius:10px;overflow:hidden;background:#222}.photo img{display:block;width:100%;max-height:250px;object-fit:cover}
 .photo .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:4px 10px}
 .photo .pn{position:absolute;top:50%;transform:translateY(-50%);border:0;background:rgba(0,0,0,.45);color:#fff;width:34px;height:44px;font-size:18px}.pn.l{left:0}.pn.r{right:0}
@@ -139,3 +141,21 @@ body.lang-ar #sceneNo{display:inline-block;direction:ltr}
 #logos #bmz{height:36px;width:auto}
 #logos .sep{width:1px;height:30px;background:#D5DDE4}
 @media (max-width:900px){#logos{padding:3px 8px;gap:8px}#logos #giz{height:22px}#logos #bmz{height:24px}#logos .sep{height:22px}}
+
+/* city labels never block clicks on the reported pollution sources below them */
+.leaflet-cities-pane .leaflet-marker-icon{pointer-events:none}
+
+/* Explore (Q&A) panel */
+.exhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.exhead b{font-size:15px;color:var(--navy)}
+.exhead button,.exact button{border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;cursor:pointer}
+#layers details{border-top:1px solid var(--line);padding:4px 0}#layers summary{cursor:pointer;font-size:11.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700;padding:6px 0}
+.tps{display:flex;flex-direction:column;gap:5px;padding-bottom:4px}.tp{text-align:start;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;font-size:13.5px;cursor:pointer;color:var(--ink,#16324a)}.tp:hover{border-color:var(--navy)}.tp.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font-size:12.5px;cursor:pointer}.chips .chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+#exQ{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;margin-bottom:6px}
+#exRes .res{display:block;width:100%;text-align:start;border:0;border-top:1px solid var(--line);background:none;padding:6px 2px;font-size:13.5px;cursor:pointer}#exRes .res:hover{background:#eef3f8}#exRes .res small{display:block;color:var(--muted);font-size:11.5px}
+.exact{display:flex;flex-direction:column;gap:6px;margin:10px 0 6px;border-top:1px solid var(--line);padding-top:10px}.exact button#exPrint{background:#fff;color:var(--navy)}
+#layers .fine{margin:6px 0 2px}
+/* print / save as PDF: map only */
+@page{size:A4 landscape;margin:8mm}
+body.printing #top,body.printing #nav,body.printing #layers,body.printing #notes,body.printing #sources,body.printing #menu,body.printing #timer,body.printing #offline,body.printing #panel,body.printing #card,body.printing #blank,body.printing .leaflet-control-container .leaflet-top{display:none!important}
+body.printing::after{display:none!important}body.printing #map{position:fixed;inset:0}body.printing #legend{display:block!important}

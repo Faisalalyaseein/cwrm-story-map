@@ -56,10 +56,12 @@ CWRM.scenes = [
     steps: [
       { layers: { reaches: 'dim', euph: 'dim', canals: 'dim', drains: 'off', mod: 'off' }, mods: false },
       { layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on' }, mods: false, line: 'Drainage canals and the Main Outfall Drain (the Third River).' },
-      { layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on' }, mods: true, line: 'Four proposed monitoring points along the Main Outfall Drain.' }
+      { layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on' }, mods: true, line: 'Four proposed monitoring points along the Main Outfall Drain.' },
+      { layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on', pollution: 'on' }, mods: false, camera: { b: [[31.35, 44.25], [32.65, 45.5]] }, line: 'Reported pollution sources: mostly sewage discharged into rivers and drains.',
+        stats: [{ v: '32', l: 'reported pollution sources located (34 in the source tables)' }, { v: '27', l: 'of them sewage discharges' }] }
     ],
-    notes: 'Irrigation return flows are collected through local drainage channels and conveyed towards the Main Outfall Drain, also known as the Third River. Farmers already reuse drainage water in some locations, but its quality and seasonal availability are not sufficiently monitored. Monitoring is therefore needed to assess safe reuse options, salinity risks and possible pollution sources.',
-    action: 'Switch off the irrigation canals and activate drainage canals, the Main Outfall Drain and the four proposed MOD monitoring points. Trace the connection from the Hillah agricultural area to the MOD.'
+    notes: 'Irrigation return flows are collected through local drainage channels and conveyed towards the Main Outfall Drain, also known as the Third River. Farmers already reuse drainage water in some locations, but its quality and seasonal availability are not sufficiently monitored. Monitoring is therefore needed to assess safe reuse options, salinity risks and possible pollution sources. The Ministry records 34 reported pollution sources in Babylon, Diwaniyah and Muthanna, mostly sewage outlets discharging into the rivers and drains; 32 of them have a usable location and are shown on the map.',
+    action: 'Switch off the irrigation canals and activate drainage canals, the Main Outfall Drain and the four proposed MOD monitoring points. Trace the connection from the Hillah agricultural area to the MOD. Then show the reported pollution sources and click one for its details.'
   },
   {
     id: 'current', title: 'The Existing Monitoring Network', line: 'Three hydrometric stations, all in need of rehabilitation or relocation.',
@@ -113,3 +115,18 @@ CWRM.panels = {
   model: { title: 'Monitoring data feed the planned RIBASIM model', items: ['Calibrate and validate the model', 'Assess water availability and demand', 'Simulate allocation and climate scenarios', 'Compare alternative management measures'] },
   future: { title: 'Planned: dashboards, alerts and decision support', items: ['More transparent water allocation', 'Improved operation of irrigation systems', 'Earlier response to droughts, floods and pollution events', 'Informed decisions on safe reuse of drainage water'], foot: 'Forecasting and predictive analytics depend on a sufficient, validated multi-year record.' }
 };
+/* Q&A topics (Explore mode): ready-made views for questions. layers = groups switched on (all others off); chips = station groups shown;
+   fit = where to fly (b = bounds, branch = a Hillah River System branch, mod / pol = the MOD stations / pollution sources, st + z = one station); branchKey and gapOnly filter the stations. */
+CWRM.topics = [
+  { id: 'hindiya', title: 'Hindiya Barrage and the system entrance', fit: { st: 'EX-01', z: 11 }, layers: ['euph', 'reaches'], chips: ['existing', 'p1'], open: 'EX-01' },
+  { id: 'hillah', title: 'Hillah main channel', fit: { branch: 'Hillah' }, layers: ['euph', 'reaches', 'canals'], chips: ['existing', 'p1', 'p2', 'p3'], branchKey: 'H' },
+  { id: 'daghara', title: 'Daghara branch', fit: { branch: 'Daghara' }, layers: ['euph', 'reaches', 'canals'], chips: ['existing', 'p1', 'p2', 'p3'], branchKey: 'DA' },
+  { id: 'diwaniyah', title: 'Diwaniyah / Rumaitha branch', fit: { branch: 'Diwaniyah' }, layers: ['euph', 'reaches', 'canals'], chips: ['existing', 'p1', 'p2', 'p3'], branchKey: 'DI' },
+  { id: 'irrigation', title: 'Irrigation canals and projects', fit: { b: [[31.35, 44.15], [32.85, 45.7]] }, layers: ['euph', 'reaches', 'canals', 'projects'], chips: [] },
+  { id: 'drainage', title: 'Drainage network and the Main Outfall Drain', fit: { b: [[31.45, 43.75], [33.5, 45.95]] }, layers: ['reaches', 'drains', 'mod'], chips: [] },
+  { id: 'mod', title: 'MOD monitoring stations', fit: { mod: true }, layers: ['drains', 'mod'], chips: ['mod'] },
+  { id: 'pollution', title: 'Reported pollution sources', fit: { pol: true }, layers: ['reaches', 'drains', 'mod', 'pollution'], chips: [] },
+  { id: 'existing', title: 'Existing stations and their condition', fit: { b: [[31.5, 44.1], [32.9, 45.4]] }, layers: ['euph', 'reaches'], chips: ['existing'] },
+  { id: 'priority1', title: 'First-priority stations', fit: { b: [[31.5, 44.1], [32.9, 45.4]] }, layers: ['euph', 'reaches'], chips: ['existing', 'p1'] },
+  { id: 'gaps', title: 'Monitoring gaps', fit: { b: [[31.5, 44.1], [32.9, 45.4]] }, layers: ['reaches', 'gaps'], chips: ['existing', 'p1', 'p2', 'p3'], gapOnly: true }
+];
