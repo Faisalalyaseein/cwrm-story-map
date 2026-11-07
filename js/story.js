@@ -42,6 +42,9 @@ const TILES = {
 map.createPane('base').style.zIndex = 190;
 let curBase = 'light'; VEC.addTo(map); TILES.light.addTo(map); map.attributionControl.addAttribution('Countries: Natural Earth (public domain)');
 document.body.classList.add('base-vector');
+/* basemap labels in English only: the Positron style prints "English + Arabic" under every place name (the Arabic joins badly in the vector tiles), so the text field is replaced by the English / Latin name */
+function latinLabels() { const gl = TILES.light.getMaplibreMap && TILES.light.getMaplibreMap(); if (!gl) return; const fix = () => { gl.getStyle().layers.forEach(l => { const tf = l.type === 'symbol' && l.layout && l.layout['text-field']; if (tf && JSON.stringify(tf).includes('name:nonlatin')) gl.setLayoutProperty(l.id, 'text-field', ['coalesce', ['get', 'name_en'], ['get', 'name:latin'], '']); }); }; gl.isStyleLoaded() ? fix() : gl.once('load', fix); }
+latinLabels(); TILES.light.on && TILES.light.on('add', () => setTimeout(latinLabels, 0));
 const setBase = (b) => { if (TILES[curBase]) map.removeLayer(TILES[curBase]); curBase = b; if (TILES[b]) TILES[b].addTo(map); };
 document.body.classList.add('base-vector');
 
