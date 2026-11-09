@@ -159,3 +159,12 @@ body.lang-ar #sceneNo{display:inline-block;direction:ltr}
 @page{size:A4 landscape;margin:8mm}
 body.printing #top,body.printing #nav,body.printing #layers,body.printing #notes,body.printing #sources,body.printing #menu,body.printing #timer,body.printing #offline,body.printing #panel,body.printing #card,body.printing #blank,body.printing .leaflet-control-container .leaflet-top{display:none!important}
 body.printing::after{display:none!important}body.printing #map{position:fixed;inset:0}body.printing #legend{display:block!important}
+
+.mk .tb{position:absolute;right:-9px;top:-9px;width:18px;height:18px;border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center}
+.lg .tbs{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;flex:none;margin:0 6px 0 3px}
+.lg .fsd{display:inline-block;width:13px;height:13px;border-radius:50%;border:3.5px solid #8E24AA;background:#fff;box-sizing:border-box;flex:none;margin:0 7px}
+.tech img,#card .photo img{cursor:zoom-in}.tech img{height:130px}.tech.n2 img{height:150px}
+#lightbox{position:fixed;inset:0;z-index:5000;background:rgba(8,20,32,.88);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;cursor:zoom-out}
+#lightbox.on{display:flex}#lightbox img{height:80vh;width:auto;max-width:94vw;object-fit:contain;border-radius:8px}
+#lightbox .lbc{color:#fff;font-size:16px;max-width:90vw;text-align:center;line-height:1.4}
+#lightbox #lbX{position:absolute;top:14px;right:18px;background:none;border:0;color:#fff;font-size:38px;cursor:pointer;line-height:1}

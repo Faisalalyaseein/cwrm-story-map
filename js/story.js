@@ -118,16 +118,21 @@ S.forEach(s => { const x = (D.extra || {})[s.id] || {}; ['institution', 'paramet
 const EXIST = S.filter(s => s.status === 'existing');
 S.forEach(s => { s.nearEx = s.status === 'proposed' ? Math.min(...EXIST.map(e => hav(s.lat, s.lng, e.lat, e.lng))) : null; s.gapSite = s.status === 'proposed' && s.nearEx > 2; });
 const linkTarget = (s) => s.linked || ((s.linkNote || '').match(/\b((?:H|DA|DI)-\d\d)\b/) || [])[1] || null;
+let techOn = false;
+const CAMSITES = ['H-06', 'DI-05'], TC = { camera: '#D81B60', radar: '#455A64' };
+const techOf = (s) => (s.status === 'proposed' ? (CAMSITES.includes(s.id) ? 'camera' : 'radar') : null);
+const TBADGE = { camera: '<svg viewBox="0 0 16 16" width="11" height="11"><rect x="1.5" y="4.5" width="9" height="7" rx="1.5" fill="#fff"/><path d="M11 7l4-2v6l-4-2z" fill="#fff"/></svg>', radar: '<svg viewBox="0 0 16 16" width="11" height="11"><circle cx="8" cy="12.5" r="1.6" fill="#fff"/><path d="M3.5 9a6.5 6.5 0 0 1 9 0M1.5 6a9.5 9.5 0 0 1 13 0" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>' };
 const colorOf = (s) => (s.status === 'existing' ? PAL.navy : PCOL[s.priority] || PAL.p3);
 function icon(s, sel) {
   const ex = s.status === 'existing', size = ex ? 28 : ({ 1: 28, 2: 25, 3: 22 }[s.priority] || 24), col = colorOf(s);
-  const att = s.attention ? '<span class="att">!</span>' : '';
+  const tk = techOn ? techOf(s) : null, att = (s.attention ? '<span class="att">!</span>' : '') + (tk ? `<span class="tb" style="background:${TC[tk]}">${TBADGE[tk]}</span>` : '');
   const html = `<div class="mk ${sel ? 'sel' : ''}" style="width:${size}px;height:${size}px"><svg viewBox="-13 -13 26 26" width="${size}" height="${size}"><path d="M0-10.5L10.5 0L0 10.5L-10.5 0Z" fill="${ex ? PAL.navy : '#fff'}" stroke="${ex ? '#fff' : col}" stroke-width="${ex ? 2.2 : 3.2}" stroke-linejoin="round"/></svg>${att}</div>`;
   const nudge = (!ex && s.nearEx != null && s.nearEx < 0.5) ? [-15, -12] : [0, 0];
   return L.divIcon({ html, className: 'mk-wrap', iconSize: [size, size], iconAnchor: [size / 2 + nudge[0], size / 2 + nudge[1]] });
 }
 const mk = {}, stationLayer = L.layerGroup().addTo(map), linkLayer = L.layerGroup().addTo(map);
 S.forEach(s => { const m = L.marker([s.lat, s.lng], { pane: 'stations', icon: icon(s), title: s.id + ' ' + s.name, riseOnHover: true }); m.on('click', () => openCard(s.id, true)); m.bindTooltip(esc(s.id), { permanent: true, direction: 'right', offset: [12, 0], className: 'stn-label' }); mk[s.id] = m; });
+function refreshIcons() { S.forEach(s => { const m = mk[s.id]; m.setIcon(icon(s, s.id === cardId)); const tk = techOn ? techOf(s) : null; m.setTooltipContent(esc(s.id) + (tk ? ' &middot; ' + esc(t(tk === 'camera' ? 'Camera' : 'Radar')) : '')); }); }
 const modMk = D.modStations.features.map((f, i) => { const p = f.properties; const m = L.marker([f.geometry.coordinates[1], f.geometry.coordinates[0]], { pane: 'stations', title: p.id + ' ' + p.name, icon: L.divIcon({ className: 'mk-wrap', iconSize: [24, 24], iconAnchor: [12, 12], html: `<div class="mk mod"><svg viewBox="-13 -13 26 26" width="24" height="24"><rect x="-8.5" y="-8.5" width="17" height="17" rx="2" fill="#fff" stroke="${PAL.mod}" stroke-width="3.2"/></svg></div>` }) }); m.bindTooltip(`<b>${esc(p.id)}</b> ${esc(p.short)}`, { permanent: true, direction: 'right', offset: [11, 0], className: 'stn-label mod' }); m.on('click', () => openMod(i)); m._p = p; return m; });
 function includeStation(s, spec) {
   if (!spec || spec === 'none') return false; if (spec === 'all') return true;
@@ -148,7 +153,7 @@ const gapLayer = L.layerGroup(), RADIUS = 25; let gapStats = { total: 0, covered
 })();
 
 /* ---------- station card ---------- */
-let cardId = null, photoIx = 0, techOn = false, techKey = 'radar';
+let cardId = null, photoIx = 0, techKey = 'radar';
 const T_CAM = ['tech_camera_site.jpg', 'Camera-based observation', 'Visual record of the water level and the site'], T_RAD = ['tech_radar_site.jpg', 'Non-contact radar', 'Water level and surface velocity / flow'], T_WQ = ['tech_wq.jpg', 'Multiparameter sonde', 'Continuous water quality (pH, DO, EC, temperature, turbidity)'];
 const T_ADCP = ['tech_adcp.jpg', 'ADCP on a mobile platform', 'Water quantity (discharge) measured at different points on the river'], T_KIT = [null, 'Mobile water quality testing kit', 'Spot measurements at ad hoc points'];
 const TECHSETS = { camera: [T_CAM, T_WQ], radar: [T_RAD, T_WQ], mobile: [T_ADCP, T_KIT] };
@@ -188,14 +193,34 @@ function openMobile() { cardId = 'MOBILE'; curCard = { mobile: true };
   const row = (k, v) => `<div class="r"><dt>${t(k)}</dt><dd>${v}</dd></div>`;
   $('#card').innerHTML = `<div class="chead"><span class="badge dot" style="background:${PAL.pol}"></span><div><h3>${esc(t('Ad hoc monitoring with mobile devices'))}</h3><span class="sub">${t('Example 3: mobile water quality testing kit and ADCP')}</span></div><button class="x" id="cardX" type="button" aria-label="Close">&times;</button></div>
   ${techHtml('Mobile devices', 'mobile')}
-  <dl>${row('Use', esc(t('Ad hoc monitoring stations: the ADCP measures water quantity and the testing kit measures water quality at different points on the river, including polluted areas.')))}${row('Where', esc(t('Spots where dead fish were found, where fresh water mixes with drainage water, and polluted areas (purple on the map).')))}${row('Coordinates', na())}</dl>
-  <div class="fine">${t('Photos of these spots, their coordinates and photos of the devices purchased for the MOD are still to be added.')}</div>`;
+  <dl>${row('Use', esc(t('Ad hoc monitoring stations: the ADCP measures water quantity and the testing kit measures water quality at different points on the river, including polluted areas.')))}${row('Where', esc(t('Spots where dead fish were found, where fresh water mixes with drainage water, and polluted areas (purple on the map).')))}${row('Ad hoc spots', `<a href="#" data-pol="M-21">${esc(t('Khwaisa drain-canal intersection (mixing)'))}</a><br>${FSP.map(f => `<a href="#" data-fs="${f.id}">${esc(t(f.name))} (${esc(t('dead fish'))})</a>`).join('<br>')}`)}</dl>
+  <div class="fine">${t('Photos of the devices purchased for the MOD are still to be added. Click a purple marker or a spot above to see its photo.')}</div>`;
+  $('#card').querySelectorAll('[data-pol],[data-fs]').forEach(a => a.onclick = (e) => { e.preventDefault(); if (a.dataset.pol) { openPol(a.dataset.pol); map.flyTo(polMk[a.dataset.pol].getLatLng(), 11, { duration: 1.2 }); } else { openField(a.dataset.fs); map.flyTo([fsMk[a.dataset.fs].getLatLng().lat, fsMk[a.dataset.fs].getLatLng().lng], 11, { duration: 1.2 }); } });
   $('#cardX').onclick = closeCard; $('#card').classList.add('tech-on'); $('#card').classList.add('open'); document.body.classList.add('card-open'); }
+
+const FSP = D.fieldSpots || [], fsMk = {};
+const lyField = L.layerGroup();
+FSP.forEach(f => { const m = L.marker([f.lat, f.lng], { pane: 'stations', title: f.name, icon: L.divIcon({ className: 'mk-wrap', iconSize: [26, 26], iconAnchor: [13, 13], html: `<div class="mk fs"><svg viewBox="-10 -10 20 20" width="26" height="26"><circle r="7" fill="#fff" stroke="${PAL.pol}" stroke-width="3.5"/><circle r="2.6" fill="${PAL.pol}"/></svg></div>` }) });
+  m.bindTooltip(() => `<b>${esc(t('Dead fish spot'))}</b><br>${esc(t(f.name))}`, { sticky: true }); m.on('click', () => openField(f.id)); fsMk[f.id] = m; m.addTo(lyField); });
+const set0 = (l, on) => { if (on && !map.hasLayer(l)) l.addTo(map); if (!on && map.hasLayer(l)) map.removeLayer(l); };
+function openField(id) { const f = FSP.find(x => x.id === id); if (!f) return; cardId = 'FS' + id; curCard = { field: id };
+  const row = (k, v) => `<div class="r"><dt>${t(k)}</dt><dd>${v}</dd></div>`;
+  $('#card').innerHTML = `<div class="chead"><span class="badge dot" style="background:${PAL.pol}"></span><div><h3>${esc(t('Dead fish spot'))}</h3><span class="sub">${esc(t(f.name))}</span></div><button class="x" id="cardX" type="button" aria-label="Close">&times;</button></div>
+  <div class="photo"><img src="${esc(f.photo)}" alt="${esc(t(f.cap))}"><span class="cap">${esc(t(f.cap))}</span></div>
+  <dl>${row('Source', esc(f.src))}<div class="r"><dt>${t('Coordinates')}</dt><dd dir="ltr">${f.lat.toFixed(6)}, ${f.lng.toFixed(6)}</dd></div></dl>
+  <div class="fine">${t('The photo carries no GPS data: the coordinates are the site coordinates given in the field report. This spot is not in the Ministry pollution-source list.')}</div>`;
+  $('#cardX').onclick = closeCard; $('#card').classList.add('tech-on'); $('#card').classList.add('open'); document.body.classList.add('card-open'); }
+const lb = document.createElement('div'); lb.id = 'lightbox'; lb.innerHTML = '<button type="button" id="lbX" aria-label="Close">&times;</button><img alt=""><div class="lbc"></div>'; document.body.appendChild(lb);
+const closeLB = () => lb.classList.remove('on');
+lb.addEventListener('click', closeLB);
+document.addEventListener('keydown', e => { if (lb.classList.contains('on')) { e.stopImmediatePropagation(); e.preventDefault(); if (e.key === 'Escape') closeLB(); } }, true);
+$('#card').addEventListener('click', e => { const im = e.target.closest('.tech img, .photo img'); if (!im) return; const fg = im.closest('figure'), cap = fg ? fg.querySelector('figcaption').innerText.replace(/\s*\n+\s*/g, ' - ') : ((im.parentNode.querySelector('.cap') || {}).textContent || ''); lb.querySelector('img').src = im.src; lb.querySelector('.lbc').textContent = cap; lb.classList.add('on'); });
 
 const POLQ = { ok: 'Location as given in the source table', corrected: 'Location corrected by the project (an error in the source coordinates); approximate', estimated: 'Location estimated from the description; approximate' };
 function openPol(id) { const l = polMk[id]; if (!l) return; const p = l.feature.properties, ll = l.getLatLng(); cardId = 'POL' + id; curCard = { pol: id };
   const row = (k, v, rtl) => v ? `<div class="r"><dt>${t(k)}</dt><dd${rtl ? ' dir="rtl" class="arv"' : ''}>${rtl ? esc(v) : v}</dd></div>` : '';
   $('#card').innerHTML = `<div class="chead"><span class="badge dot" style="background:${PAL.pol}"></span><div><h3>${esc(t(p.cat))}</h3><span class="sub">${t('Reported pollution source')} &middot; ${esc(t(p.dir))}</span></div><button class="x" id="cardX" type="button" aria-label="Close">&times;</button></div>
+  ${p.ph ? `<div class="photo"><img src="${esc(p.ph)}" alt="${esc(t(p.phc))}"><span class="cap">${esc(t(p.phc))}</span></div>` : ''}
   <dl>${row('Outlet (as recorded, Arabic)', p.ar, 1)}${row('Receiving water (as recorded, Arabic)', p.w, 1)}${row('Type (as recorded, Arabic)', p.tp, 1)}${row('Location', t(POLQ[p.q] || POLQ.ok))}<div class="r"><dt>${t('Coordinates')}</dt><dd dir="ltr">${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}</dd></div></dl>
   <div class="fine">${t('From the Ministry of Water Resources pollution-source tables (Diwaniyah, Babylon, Muthanna). Descriptions stay in Arabic as recorded. Discharge values, responsible parties and follow-up actions are not shown.')}</div>`;
   $('#cardX').onclick = closeCard; $('#card').classList.remove('tech-on'); $('#card').classList.add('open'); document.body.classList.add('card-open'); }
@@ -222,7 +247,7 @@ function applyState(S0, camChanged, instant) {
   modMk.forEach(m => { if (S0.mods === undefined ? (S0.layers.mod === 'on' && S0.id === 'master' ? false : S0.mods) : S0.mods) m.addTo(stationLayer); });
   if (S0.id === 'decision') modMk.forEach(m => m.addTo(stationLayer));
   // card
-  techOn = !!S0.tech; techKey = S0.techSet || 'radar'; if (S0.open) openCard(S0.open); else if (S0.mobile) openMobile(); else if (cardId) closeCard();
+  set0(lyField, !!S0.mobile && !exploring); techOn = !!S0.tech; refreshIcons(); techKey = S0.techSet || 'radar'; if (S0.open) openCard(S0.open); else if (S0.mobile) openMobile(); else if (cardId) closeCard();
   // panel (decision scene)
   const pn = S0.panel && ((lang === 'ar' && AR.panels[S0.panel]) || D.panels[S0.panel]); $('#panel').classList.toggle('open', !!pn); if (pn) $('#panel').innerHTML = `<h3>${esc(pn.title)}</h3><ul>${pn.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${pn.foot ? `<div class="foot">${esc(pn.foot)}</div>` : ''}`;
   if (camChanged && S0.camera) fitCamera(S0.camera, instant);
@@ -248,7 +273,8 @@ function legend(S0) {
   const sw = (t, c, w) => t === 'line' ? `<i class="ln" style="border-top:${Math.max(2, w)}px solid ${c}"></i>` : t === 'dash' ? `<i class="ln" style="border-top:2px dashed ${c}"></i>` : t === 'dot' ? `<i class="dt" style="background:${c}"></i>` : `<i class="bx" style="background:${c}"></i>`;
   const stn = S0.stations && S0.stations !== 'none' ? (S0.noExisting ? [] : [`<div class="lg"><i class="dm" style="background:${PAL.navy}"></i>${t('Existing station')}</div>`]).concat(S0.stations.priority || S0.stations.gapSites ? [1, 2, 3].filter(p => !S0.stations.priority || S0.stations.priority.includes(p) || S0.stations.gapSites).map(p => `<div class="lg"><i class="dm ho" style="border-color:${PCOL[p]}"></i>${t('Proposed')}${lang === 'ar' ? '، ' : ', '}${t(PLAB[p])}</div>`) : []) : [];
   const mods = (S0.mods || S0.id === 'decision') ? [`<div class="lg"><i class="sqr" style="border-color:${PAL.mod}"></i>${t('Proposed MOD station')}</div>`] : [];
-  const l = items.map(([ty, c, w, lab]) => `<div class="lg">${sw(ty, c, w)}${esc(t(lab))}</div>`).concat(stn, mods); $('#legend').innerHTML = l.length ? l.join('') : ''; $('#legend').style.display = l.length ? '' : 'none';
+  const tl = S0.tech ? [`<div class="lg"><i class="tbs" style="background:${TC.camera}">${TBADGE.camera}</i>${t('Camera station (Daghara US, Barshawiya)')}</div>`, `<div class="lg"><i class="tbs" style="background:${TC.radar}">${TBADGE.radar}</i>${t('Radar station (other proposed stations)')}</div>`] : [], fl = S0.mobile ? [`<div class="lg"><i class="fsd"></i>${t('Dead fish spot (field mission)')}</div>`] : [];
+  const l = items.map(([ty, c, w, lab]) => `<div class="lg">${sw(ty, c, w)}${esc(t(lab))}</div>`).concat(stn, mods, tl, fl); $('#legend').innerHTML = l.length ? l.join('') : ''; $('#legend').style.display = l.length ? '' : 'none';
 }
 const stepsOf = (i) => (SC[i].steps ? SC[i].steps.length : 1);
 function go(i, j, opts) { const sceneChanged = i !== si || first; si = Math.max(0, Math.min(SC.length - 1, i)); st = Math.max(0, Math.min(stepsOf(si) - 1, j || 0)); if (exploring) setExplore(false, true); const S0 = stateOf(si, st); S0.id = SC[si].id; applyState(S0, sceneChanged || (SC[si].steps && SC[si].steps[st] && SC[si].steps[st].camera) || (opts && opts.forceCam), first); first = false; writeHash(); }
@@ -314,7 +340,7 @@ function applyTopic(id) {
   if (tp.open) setTimeout(() => { if (exploring && EX.topic === id) openCard(tp.open); }, 1700);
 }
 function setExplore(on, silent) {
-  const was = exploring; exploring = on; if (on) techOn = false; document.body.classList.toggle('explore', on); $('#exploreBtn').classList.toggle('on', on);
+  const was = exploring; exploring = on; if (on) { techOn = false; refreshIcons(); set0(lyField, false); } document.body.classList.toggle('explore', on); $('#exploreBtn').classList.toggle('on', on);
   if (on) {
     if (!was) { closeCard(); $('#panel').classList.remove('open'); resetExplore(); document.body.classList.remove('nolabels'); [...Object.keys(GROUPS)].forEach(n => { if (n !== 'labels' && GROUPS[n].state === 'dim') setGroup(n, 'on'); }); syncNet(); refreshStations(); }
     renderExplore();
@@ -379,7 +405,7 @@ function applyLang() {
   $('#dots').querySelectorAll('button').forEach((b, i) => { const ti = lang === 'ar' && AR.scenes[i] ? AR.scenes[i].title : SC[i].title; b.title = (i + 1) + '. ' + ti; });
   try { localStorage.setItem('cwrm_story_lang', lang); } catch (e) {}
   if (exploring) setExplore(true, true); else applyState(Object.assign(stateOf(si, st), { id: SC[si].id }), false, true);
-  if (cardId && curCard && !exploring) { if (curCard.mod != null) openMod(curCard.mod); else if (curCard.mobile) openMobile(); else if (curCard.pol != null) openPol(curCard.pol); else renderCard(curCard); }
+  if (cardId && curCard && !exploring) { if (curCard.mod != null) openMod(curCard.mod); else if (curCard.mobile) openMobile(); else if (curCard.field) openField(curCard.field); else if (curCard.pol != null) openPol(curCard.pol); else renderCard(curCard); }
   writeHash();
 }
 const setLang = (l) => { lang = l; applyLang(); };
