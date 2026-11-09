@@ -73,14 +73,6 @@ CWRM.scenes = [
     action: 'Select the Current network view. Explain the status indicators for the three existing stations and open one station entry to show the documented condition.'
   },
   {
-    id: 'gaps', title: 'Identified Monitoring Gaps', line: 'Green: river stretches covered by an existing station. Red: not covered.',
-    camera: { b: [[31.5, 44.1], [32.9, 45.4]] },
-    layers: { reaches: 'off', euph: 'dim', canals: 'dim', drains: 'off', gaps: 'on' }, stations: { status: 'existing', gapSites: true }, labels: 'none', stationLabels: true,
-    steps: [{ stations: { status: 'existing' } }, { stations: { status: 'existing', gapSites: true }, line: 'Proposed sites with no existing station nearby fill the gaps.' }],
-    notes: 'The gap analysis shows which river sections are not adequately covered by the existing stations. It also identifies proposed sites without a nearby station and highlights the need for monitoring at major offtakes, branch entrances and governorate boundaries. This turns the current data gap into a transparent and spatially justified monitoring plan.',
-    action: 'Select Identified gaps. Explain the indicative coverage radius, the uncovered river stretches and the proposed gap-filling locations. (The 25 km radius is a working assumption, not a design criterion.)'
-  },
-  {
     id: 'master', title: 'The Master Plan for the Hillah River Monitoring System', line: 'Step by step: from four first-priority stations to a network of 18.',
     camera: { b: [[31.5, 44.1], [32.9, 45.4]] },
     layers: { reaches: 'on', euph: 'on', canals: 'dim', drains: 'dim', mod: 'dim' }, labels: 'none', stationLabels: true, links: true,
@@ -95,12 +87,18 @@ CWRM.scenes = [
     action: 'Merged storyboard steps 8 and 9 (comment of C. Staerz). Reveal the four Phase 1 stations and the links between existing stations and their proposed successors; then the 2nd- and 3rd-priority stations; then activate the MOD station layer to complete the 18-station concept.'
   },
   {
-    id: 'tech', title: 'Future Monitoring Technologies at Selected Sites', line: 'Select a proposed site to see its photograph, purpose, parameters and technologies.',
+    id: 'tech', title: 'Future Monitoring Technologies at Selected Sites', line: 'Three examples of the technologies that will be installed.',
     camera: { b: [[31.5, 44.1], [32.9, 45.4]], pad: [400, 76, 450, 100] },
     layers: { reaches: 'on', euph: 'on', canals: 'dim', drains: 'dim', mod: 'dim' }, stations: { priority: [1, 2, 3] }, labels: 'none', stationLabels: true, tech: true,
-    steps: [{}, { open: 'H-01' }, { open: 'DA-01' }, { open: 'DI-05' }],
-    notes: 'Selecting a proposed location should not only show the site\'s function and monitoring parameters, but also illustrate the technologies that could be installed there. Depending on the monitoring objective and site conditions, this may include camera-based observation, non-contact radar-based water-level and flow measurement, and multiparameter sondes for continuous water-quality monitoring. German companies have particular expertise in these fields and can offer suitable technological solutions for the planned monitoring network.',
-    action: 'Select different proposed stations and display the relevant technology images alongside the site photograph, monitoring purpose and parameters. (The technology images are illustrative; their source and licence are to be confirmed.)'
+    stats: [{ v: '2', l: 'sites use camera technology (Daghara US and Barshawiya); radar is used at the other stations' }, { v: 'All', l: 'fixed stations measure the same water quality parameters with a multiparameter sonde' }],
+    steps: [
+      {},
+      { open: 'H-06', techSet: 'camera', line: 'Example 1: camera and multiparameter sonde (Daghara US).' },
+      { open: 'H-01', techSet: 'radar', line: 'Example 2: radar and multiparameter sonde (D/S Hindiya Barrage).' },
+      { mobile: true, layers: { pollution: 'on' }, camera: { b: [[31.35, 44.25], [32.65, 45.5]], pad: [400, 76, 450, 100] }, line: 'Example 3: mobile water quality kit and ADCP at ad hoc points (purple: reported pollution sources).' }
+    ],
+    notes: 'Three examples show the technologies that will be installed at selected sites. At two sites, Daghara US and Barshawiya, a camera is used; the other stations use non-contact radar for water level and flow. All fixed stations, including those on the Main Outfall Drain, carry the same multiparameter sonde for continuous water quality. Mobile devices, a water quality testing kit and an ADCP, complement the fixed stations as ad hoc monitoring points, for example where dead fish were found, where fresh water mixes with drainage water, and at polluted areas (purple on the map). German companies have particular expertise in these fields and can offer suitable technological solutions for the planned monitoring network.',
+    action: 'Step through the three examples: camera and sonde at Daghara US, radar and sonde at D/S Hindiya Barrage, then the mobile kit and ADCP at ad hoc points with the purple pollution sources. (The images are illustrative; their source and licence are to be confirmed. Photos of the mobile devices and of the spots, and the spot coordinates, are still to be added.)'
   },
   {
     id: 'decision', title: 'Climate Resilient Decision Support', line: 'From monitoring data to better operational and strategic decisions.',

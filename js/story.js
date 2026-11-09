@@ -148,8 +148,11 @@ const gapLayer = L.layerGroup(), RADIUS = 25; let gapStats = { total: 0, covered
 })();
 
 /* ---------- station card ---------- */
-let cardId = null, photoIx = 0, techOn = false;
-const TECH = [['tech_camera.jpg', 'Camera-based observation', 'Visual record of the water level and the site'], ['tech_radar.jpg', 'Non-contact radar', 'Water level and surface velocity / flow'], ['tech_wq.jpg', 'Multiparameter sonde', 'Continuous water quality (pH, DO, EC, temperature, turbidity)']];
+let cardId = null, photoIx = 0, techOn = false, techKey = 'radar';
+const T_CAM = ['tech_camera_site.jpg', 'Camera-based observation', 'Visual record of the water level and the site'], T_RAD = ['tech_radar_site.jpg', 'Non-contact radar', 'Water level and surface velocity / flow'], T_WQ = ['tech_wq.jpg', 'Multiparameter sonde', 'Continuous water quality (pH, DO, EC, temperature, turbidity)'];
+const T_ADCP = ['tech_adcp.jpg', 'ADCP on a mobile platform', 'Water quantity (discharge) measured at different points on the river'], T_KIT = [null, 'Mobile water quality testing kit', 'Spot measurements at ad hoc points'];
+const TECHSETS = { camera: [T_CAM, T_WQ], radar: [T_RAD, T_WQ], mobile: [T_ADCP, T_KIT] };
+const techHtml = (heading, key) => { const set = TECHSETS[key] || TECHSETS.radar; return `<h4 class="th">${t(heading)}</h4><div class="tech n${set.length}">${set.map(x => `<figure>${x[0] ? `<img src="img/${x[0]}" alt="${esc(tt(x[1]))}">` : `<div class="ph">${t('Photo to be added')}</div>`}<figcaption><b>${esc(tt(x[1]))}</b>${esc(tt(x[2]))}</figcaption></figure>`).join('')}</div><div class="fine">${t('Illustrative images; source and licence to be confirmed.')}</div>`; };
 function openCard(id, user) {
   const s = byId[id]; if (!s) return; cardId = id; photoIx = 0; renderCard(s); $('#card').classList.add('open'); document.body.classList.add('card-open');
   Object.entries(mk).forEach(([k, m]) => m.setIcon(icon(byId[k], k === id)));
@@ -166,7 +169,7 @@ function renderCard(s) {
   const dms = (v, p, n) => { const a = Math.abs(v), d = Math.floor(a), m = Math.floor((a - d) * 60), sec = ((a - d - m / 60) * 3600).toFixed(1); return `${d}°${m}'${sec}"${v >= 0 ? p : n}`; };
   $('#card').innerHTML = `<div class="chead"><span class="badge" style="background:${col}"></span><div><h3>${esc(s.id)} &middot; ${esc(s.name)}</h3><span class="sub">${ex ? t('Existing station') : t('Proposed') + ' &middot; ' + t(PLAB[s.priority])}${s.attention ? ' &middot; <b class="warn">' + t('needs attention') + '</b>' : ''}</span></div><button class="x" id="cardX" type="button" aria-label="Close">&times;</button></div>
   ${ph.length ? `<div class="photo"><img id="cardImg" src="${esc(ph[0].src)}" alt="${esc(capT(ph[0].caption))}">${ph.length > 1 ? '<button class="pn l" id="phPrev" type="button">&#10094;</button><button class="pn r" id="phNext" type="button">&#10095;</button>' : ''}<span class="cap" id="cardCap">${esc(capT(ph[0].caption))}${ph.length > 1 ? ' (1/' + ph.length + ')' : ''}</span></div>` : ''}
-  ${techOn && !ex ? `<h4 class="th">${t('Technologies that could be installed here')}</h4><div class="tech">${TECH.map(t => `<figure><img src="img/${t[0]}" alt="${esc(tt(t[1]))}"><figcaption><b>${esc(tt(t[1]))}</b>${esc(tt(t[2]))}</figcaption></figure>`).join('')}</div><div class="fine">${t('Illustrative images; source and licence to be confirmed.')}</div>` : ''}
+  ${techOn && !ex ? techHtml('Technologies that will be installed', techKey) : ''}
   <dl>${ex ? row(t('Condition'), esc(s.statusText)) + row(t('Basis'), esc(s.attentionBasis)) + row(t('Parameters measured now'), esc(s.parametersCurrent)) + row(t('Telemetry'), esc(s.telemetry)) : row(t('Purpose of the site'), esc(s.role)) + row(t('Branch'), esc(s.branch) + (s.riverKm != null ? ' &middot; ' + t('chainage') + ' ' + s.riverKm + ' ' + t('km') : '')) + row(t('Parameters'), esc(s.parametersProposed)) + row(t('Telemetry'), esc(s.telemetry))}
   ${row(t('Coordinates'), `<span dir="ltr">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}<br><span class="dms">${dms(s.lat, 'N', 'S')} ${dms(s.lng, 'E', 'W')}</span></span>`)}${linkTarget(s) ? row(t('Linked site'), `<a href="#" data-go="${esc(linkTarget(s))}">${esc(linkTarget(s))}</a>`) : ''}</dl>${lang === 'ar' ? '<div class="fine">' + t('Station details are in English, as in the design document.') + '</div>' : ''}`;
   $('#card').classList.toggle('tech-on', techOn && !ex);
@@ -180,6 +183,14 @@ function openMod(i) { const m = modMk[i], p = m._p, ll = m.getLatLng(); cardId =
   ${p.photo ? `<div class="photo"><img src="${esc(p.photo)}" alt="${esc(p.name)}"><span class="cap">${t('Site photograph from the MOD stations table')}</span></div>` : ''}
   <dl><div class="r"><dt>${t('Monitoring type')}</dt><dd>${t(p.type)}</dd></div><div class="r"><dt>${t('Role')}</dt><dd>${t('One of four proposed stations along the Main Outfall Drain (the Third River): drainage water quality, salinity and pollution sources.')}</dd></div><div class="r"><dt>${t('Coordinates')}</dt><dd dir="ltr">${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}</dd></div><div class="r"><dt>${t('Priority and parameters')}</dt><dd>${na()}</dd></div></dl><div class="fine">${t('Locations and photographs from the MOD monitoring-stations table (received 2026-11-02); priority and parameters are to be confirmed.')}</div>`;
   $('#cardX').onclick = closeCard; $('#card').classList.remove('tech-on'); $('#card').classList.add('open'); document.body.classList.add('card-open'); }
+
+function openMobile() { cardId = 'MOBILE'; curCard = { mobile: true };
+  const row = (k, v) => `<div class="r"><dt>${t(k)}</dt><dd>${v}</dd></div>`;
+  $('#card').innerHTML = `<div class="chead"><span class="badge dot" style="background:${PAL.pol}"></span><div><h3>${esc(t('Ad hoc monitoring with mobile devices'))}</h3><span class="sub">${t('Example 3: mobile water quality testing kit and ADCP')}</span></div><button class="x" id="cardX" type="button" aria-label="Close">&times;</button></div>
+  ${techHtml('Mobile devices', 'mobile')}
+  <dl>${row('Use', esc(t('Ad hoc monitoring stations: the ADCP measures water quantity and the testing kit measures water quality at different points on the river, including polluted areas.')))}${row('Where', esc(t('Spots where dead fish were found, where fresh water mixes with drainage water, and polluted areas (purple on the map).')))}${row('Coordinates', na())}</dl>
+  <div class="fine">${t('Photos of these spots, their coordinates and photos of the devices purchased for the MOD are still to be added.')}</div>`;
+  $('#cardX').onclick = closeCard; $('#card').classList.add('tech-on'); $('#card').classList.add('open'); document.body.classList.add('card-open'); }
 
 const POLQ = { ok: 'Location as given in the source table', corrected: 'Location corrected by the project (an error in the source coordinates); approximate', estimated: 'Location estimated from the description; approximate' };
 function openPol(id) { const l = polMk[id]; if (!l) return; const p = l.feature.properties, ll = l.getLatLng(); cardId = 'POL' + id; curCard = { pol: id };
@@ -211,7 +222,7 @@ function applyState(S0, camChanged, instant) {
   modMk.forEach(m => { if (S0.mods === undefined ? (S0.layers.mod === 'on' && S0.id === 'master' ? false : S0.mods) : S0.mods) m.addTo(stationLayer); });
   if (S0.id === 'decision') modMk.forEach(m => m.addTo(stationLayer));
   // card
-  techOn = !!S0.tech; if (S0.open) openCard(S0.open); else if (cardId) closeCard();
+  techOn = !!S0.tech; techKey = S0.techSet || 'radar'; if (S0.open) openCard(S0.open); else if (S0.mobile) openMobile(); else if (cardId) closeCard();
   // panel (decision scene)
   const pn = S0.panel && ((lang === 'ar' && AR.panels[S0.panel]) || D.panels[S0.panel]); $('#panel').classList.toggle('open', !!pn); if (pn) $('#panel').innerHTML = `<h3>${esc(pn.title)}</h3><ul>${pn.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${pn.foot ? `<div class="foot">${esc(pn.foot)}</div>` : ''}`;
   if (camChanged && S0.camera) fitCamera(S0.camera, instant);
@@ -303,7 +314,7 @@ function applyTopic(id) {
   if (tp.open) setTimeout(() => { if (exploring && EX.topic === id) openCard(tp.open); }, 1700);
 }
 function setExplore(on, silent) {
-  const was = exploring; exploring = on; document.body.classList.toggle('explore', on); $('#exploreBtn').classList.toggle('on', on);
+  const was = exploring; exploring = on; if (on) techOn = false; document.body.classList.toggle('explore', on); $('#exploreBtn').classList.toggle('on', on);
   if (on) {
     if (!was) { closeCard(); $('#panel').classList.remove('open'); resetExplore(); document.body.classList.remove('nolabels'); [...Object.keys(GROUPS)].forEach(n => { if (n !== 'labels' && GROUPS[n].state === 'dim') setGroup(n, 'on'); }); syncNet(); refreshStations(); }
     renderExplore();
@@ -368,7 +379,7 @@ function applyLang() {
   $('#dots').querySelectorAll('button').forEach((b, i) => { const ti = lang === 'ar' && AR.scenes[i] ? AR.scenes[i].title : SC[i].title; b.title = (i + 1) + '. ' + ti; });
   try { localStorage.setItem('cwrm_story_lang', lang); } catch (e) {}
   if (exploring) setExplore(true, true); else applyState(Object.assign(stateOf(si, st), { id: SC[si].id }), false, true);
-  if (cardId && curCard && !exploring) { if (curCard.mod != null) openMod(curCard.mod); else if (curCard.pol != null) openPol(curCard.pol); else renderCard(curCard); }
+  if (cardId && curCard && !exploring) { if (curCard.mod != null) openMod(curCard.mod); else if (curCard.mobile) openMobile(); else if (curCard.pol != null) openPol(curCard.pol); else renderCard(curCard); }
   writeHash();
 }
 const setLang = (l) => { lang = l; applyLang(); };
@@ -382,7 +393,7 @@ if (lang === 'ar') map.whenReady(() => setTimeout(applyLang, 50));
   window.addEventListener('offline', show); window.addEventListener('online', hide); if (!navigator.onLine) show();
   const gl = TILES.light && TILES.light.getMaplibreMap && TILES.light.getMaplibreMap();
   if (gl) { gl.on('error', e => { const m = String((e.error && e.error.message) || ''); if (/fetch|network|Failed|style/i.test(m)) show(); }); gl.on('load', hide); }
-  setTimeout(() => { const src = []; S.forEach(s => (s.photos || []).forEach(p => src.push(p.src))); TECH.forEach(t => src.push('img/' + t[0])); src.forEach(u => { const i = new Image(); i.src = u; }); }, 2500);
+  setTimeout(() => { const src = []; S.forEach(s => (s.photos || []).forEach(p => src.push(p.src))); Object.values(TECHSETS).forEach(set => set.forEach(t => { if (t[0]) src.push('img/' + t[0]); })); src.forEach(u => { const i = new Image(); i.src = u; }); }, 2500);
   const t0 = { v: Date.now() }, tm = $('#timer'), fmt = (ms) => { const sec = Math.floor(ms / 1000); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); };
   setInterval(() => { if (tm.classList.contains('on')) tm.textContent = fmt(Date.now() - t0.v) + ' / ' + t('10 to 12 min'); }, 1000);
   document.addEventListener('keydown', e => { if (e.target.matches('input,select,textarea')) return; const k = e.key.toLowerCase(); if (k === 'b') $('#blank').classList.toggle('on'); else if (k === 't') tm.classList.toggle('on'); else if (k === 'home') t0.v = Date.now(); });
