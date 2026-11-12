@@ -160,7 +160,7 @@ body.lang-ar #sceneNo{display:inline-block;direction:ltr}
 body.printing #top,body.printing #nav,body.printing #layers,body.printing #notes,body.printing #sources,body.printing #menu,body.printing #timer,body.printing #offline,body.printing #panel,body.printing #card,body.printing #blank,body.printing .leaflet-control-container .leaflet-top{display:none!important}
 body.printing::after{display:none!important}body.printing #map{position:fixed;inset:0}body.printing #legend{display:block!important}
 
-.mk .tb{position:absolute;right:-9px;top:-9px;width:18px;height:18px;border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center}
+.mk .tb{position:absolute;left:-10px;top:-10px;width:18px;height:18px;border-radius:50%;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center}
 .lg .tbs{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;flex:none;margin:0 6px 0 3px}
 .lg .fsd{display:inline-block;width:13px;height:13px;border-radius:50%;border:3.5px solid #8E24AA;background:#fff;box-sizing:border-box;flex:none;margin:0 7px}
 .tech img,#card .photo img{cursor:zoom-in}.tech img{height:130px}.tech.n2 img{height:150px}
