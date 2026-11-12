@@ -52,7 +52,7 @@ CWRM.scenes = [
     id: 'drainage', title: 'Drainage Network and Reuse Potential', line: 'Return flows are collected by drains and carried to the Main Outfall Drain.',
     camera: { b: [[31.45, 43.75], [33.5, 45.95]] },
     layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on' }, cities: ['Hillah', 'Diwaniyah', 'Baghdad'], labels: 'none', stationLabels: true,
-    stats: [{ v: '5,392 km', l: 'drainage network in the study extent' }, { v: '4', l: 'proposed monitoring points on the MOD' }],
+    stats: [{ v: '4', l: 'proposed monitoring points on the MOD' }],
     steps: [
       { layers: { reaches: 'dim', euph: 'dim', canals: 'dim', drains: 'off', mod: 'off' }, mods: false },
       { layers: { reaches: 'dim', euph: 'dim', canals: 'off', drains: 'on', mod: 'on' }, mods: false, line: 'Drainage canals and the Main Outfall Drain (the Third River).' },
@@ -89,12 +89,12 @@ CWRM.scenes = [
   {
     id: 'tech', title: 'Future Monitoring Technologies at Selected Sites', line: 'Three examples of the technologies that will be installed.',
     camera: { b: [[31.5, 44.1], [32.9, 45.4]], pad: [400, 76, 450, 100] },
-    layers: { reaches: 'on', euph: 'on', canals: 'dim', drains: 'dim', mod: 'dim' }, stations: { priority: [1, 2, 3] }, labels: 'none', stationLabels: true, tech: true,
+    layers: { reaches: 'on', euph: 'on', canals: 'dim', drains: 'dim', mod: 'dim' }, stations: { priority: [1, 2, 3] }, noExisting: true, labels: 'none', stationLabels: true, tech: true,
     stats: [{ v: '2', l: 'sites use camera technology (Daghara US and Barshawiya); radar is used at the other stations' }, { v: 'All', l: 'fixed stations measure the same water quality parameters with a multiparameter sonde' }],
     steps: [
       {},
-      { open: 'H-06', techSet: 'camera', line: 'Example 1: camera and multiparameter sonde (Daghara US).' },
-      { open: 'H-01', techSet: 'radar', line: 'Example 2: radar and multiparameter sonde (D/S Hindiya Barrage).' },
+      { open: 'H-06', techSet: 'camera', techOnly: 'camera', stations: { ids: ['H-06', 'DI-05'] }, line: 'Example 1: two stations with a camera and a multiparameter sonde (Daghara US and Barshawiya).' },
+      { open: 'H-01', techSet: 'radar', techOnly: 'radar', stations: { ids: ['H-01', 'H-02', 'H-03', 'H-04', 'H-05', 'DA-01', 'DA-02', 'DI-01', 'DI-02', 'DI-03', 'DI-04', 'DI-06'] }, line: 'Example 2: the other stations with a radar and a multiparameter sonde (shown: D/S Hindiya Barrage).' },
       { mobile: true, layers: { pollution: 'on' }, camera: { b: [[31.35, 44.25], [32.65, 45.5]], pad: [400, 76, 450, 100] }, line: 'Example 3: mobile water quality kit and ADCP at ad hoc points (purple: reported pollution sources and dead-fish spots).' }
     ],
     notes: 'Three examples show the technologies that will be installed at selected sites. At two sites, Daghara US and Barshawiya, a camera is used; the other stations use non-contact radar for water level and flow. All fixed stations, including those on the Main Outfall Drain, carry the same multiparameter sonde for continuous water quality. Mobile devices, a water quality testing kit and an ADCP, complement the fixed stations as ad hoc monitoring points, for example where dead fish were found, where fresh water mixes with drainage water, and at polluted areas (purple on the map). German companies have particular expertise in these fields and can offer suitable technological solutions for the planned monitoring network.',
@@ -110,7 +110,7 @@ CWRM.scenes = [
   }
 ];
 CWRM.panels = {
-  model: { title: 'Monitoring data feed the planned RIBASIM model', items: ['Calibrate and validate the model', 'Assess water availability and demand', 'Simulate allocation and climate scenarios', 'Compare alternative management measures'] },
+  model: { img: 'img/ribasim.jpg', cap: 'RIBASIM model network of the Hillah River System (screenshot of the model, link flows in m3/s)', title: 'Monitoring data feed the planned RIBASIM model', items: ['Calibrate and validate the model', 'Assess water availability and demand', 'Simulate allocation and climate scenarios', 'Compare alternative management measures'] },
   future: { title: 'Planned: dashboards, alerts and decision support', items: ['More transparent water allocation', 'Improved operation of irrigation systems', 'Earlier response to droughts, floods and pollution events', 'Informed decisions on safe reuse of drainage water'], foot: 'Forecasting and predictive analytics depend on a sufficient, validated multi-year record.' }
 };
 /* Q&A topics (Explore mode): ready-made views for questions. layers = groups switched on (all others off); chips = station groups shown;

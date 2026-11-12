@@ -214,7 +214,8 @@ const lb = document.createElement('div'); lb.id = 'lightbox'; lb.innerHTML = '<b
 const closeLB = () => lb.classList.remove('on');
 lb.addEventListener('click', closeLB);
 document.addEventListener('keydown', e => { if (lb.classList.contains('on')) { e.stopImmediatePropagation(); e.preventDefault(); if (e.key === 'Escape') closeLB(); } }, true);
-$('#card').addEventListener('click', e => { const im = e.target.closest('.tech img, .photo img'); if (!im) return; const fg = im.closest('figure'), cap = fg ? fg.querySelector('figcaption').innerText.replace(/\s*\n+\s*/g, ' - ') : ((im.parentNode.querySelector('.cap') || {}).textContent || ''); lb.querySelector('img').src = im.src; lb.querySelector('.lbc').textContent = cap; lb.classList.add('on'); });
+const zoomIn = e => { const im = e.target.closest('.tech img, .photo img'); if (!im) return; const fg = im.closest('figure'), cap = fg ? fg.querySelector('figcaption').innerText.replace(/\s*\n+\s*/g, ' - ') : ((im.parentNode.querySelector('.cap') || {}).textContent || ''); lb.querySelector('img').src = im.src; lb.querySelector('.lbc').textContent = cap; lb.classList.add('on'); };
+$('#card').addEventListener('click', zoomIn); $('#panel').addEventListener('click', zoomIn);
 
 const POLQ = { ok: 'Location as given in the source table', corrected: 'Location corrected by the project (an error in the source coordinates); approximate', estimated: 'Location estimated from the description; approximate' };
 function openPol(id) { const l = polMk[id]; if (!l) return; const p = l.feature.properties, ll = l.getLatLng(); cardId = 'POL' + id; curCard = { pol: id };
@@ -249,7 +250,7 @@ function applyState(S0, camChanged, instant) {
   // card
   set0(lyField, !!S0.mobile && !exploring); techOn = !!S0.tech; refreshIcons(); techKey = S0.techSet || 'radar'; if (S0.open) openCard(S0.open); else if (S0.mobile) openMobile(); else if (cardId) closeCard();
   // panel (decision scene)
-  const pn = S0.panel && ((lang === 'ar' && AR.panels[S0.panel]) || D.panels[S0.panel]); $('#panel').classList.toggle('open', !!pn); if (pn) $('#panel').innerHTML = `<h3>${esc(pn.title)}</h3><ul>${pn.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${pn.foot ? `<div class="foot">${esc(pn.foot)}</div>` : ''}`;
+  const pn = S0.panel && ((lang === 'ar' && AR.panels[S0.panel]) || D.panels[S0.panel]); $('#panel').classList.toggle('open', !!pn); if (pn) $('#panel').classList.toggle('wide', !!(pn && D.panels[S0.panel].img)); if (pn) $('#panel').innerHTML = `${D.panels[S0.panel].img ? `<div class="photo"><img src="${D.panels[S0.panel].img}" alt="${esc(t(D.panels[S0.panel].cap))}"><span class="cap">${esc(t(D.panels[S0.panel].cap))}</span></div>` : ''}<h3>${esc(pn.title)}</h3><ul>${pn.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${pn.foot ? `<div class="foot">${esc(pn.foot)}</div>` : ''}`;
   if (camChanged && S0.camera) fitCamera(S0.camera, instant);
   // text
   let stats = S0.stats || (S0.id === 'gaps' ? [{ v: Math.round(gapStats.total - gapStats.covered) + ' km', l: 'of river beyond ' + RADIUS + ' km of an existing station', c: 'warn' }, { v: Math.round(100 * gapStats.covered / gapStats.total) + ' %', l: 'of river within the indicative radius', c: 'good' }, { v: S.filter(s => s.gapSite).length + ' of 14', l: 'proposed sites with no existing station nearby' }] : []);
@@ -273,7 +274,7 @@ function legend(S0) {
   const sw = (t, c, w) => t === 'line' ? `<i class="ln" style="border-top:${Math.max(2, w)}px solid ${c}"></i>` : t === 'dash' ? `<i class="ln" style="border-top:2px dashed ${c}"></i>` : t === 'dot' ? `<i class="dt" style="background:${c}"></i>` : `<i class="bx" style="background:${c}"></i>`;
   const stn = S0.stations && S0.stations !== 'none' ? (S0.noExisting ? [] : [`<div class="lg"><i class="dm" style="background:${PAL.navy}"></i>${t('Existing station')}</div>`]).concat(S0.stations.priority || S0.stations.gapSites ? [1, 2, 3].filter(p => !S0.stations.priority || S0.stations.priority.includes(p) || S0.stations.gapSites).map(p => `<div class="lg"><i class="dm ho" style="border-color:${PCOL[p]}"></i>${t('Proposed')}${lang === 'ar' ? '، ' : ', '}${t(PLAB[p])}</div>`) : []) : [];
   const mods = (S0.mods || S0.id === 'decision') ? [`<div class="lg"><i class="sqr" style="border-color:${PAL.mod}"></i>${t('Proposed MOD station')}</div>`] : [];
-  const tl = S0.tech ? [`<div class="lg"><i class="tbs" style="background:${TC.camera}">${TBADGE.camera}</i>${t('Camera station (Daghara US, Barshawiya)')}</div>`, `<div class="lg"><i class="tbs" style="background:${TC.radar}">${TBADGE.radar}</i>${t('Radar station (other proposed stations)')}</div>`] : [], fl = S0.mobile ? [`<div class="lg"><i class="fsd"></i>${t('Dead fish spot (field mission)')}</div>`] : [];
+  const tl = S0.tech ? [`<div class="lg"><i class="tbs" style="background:${TC.camera}">${TBADGE.camera}</i>${t('Camera station (Daghara US, Barshawiya)')}</div>`, `<div class="lg"><i class="tbs" style="background:${TC.radar}">${TBADGE.radar}</i>${t('Radar station (other proposed stations)')}</div>`].filter((x, k) => !S0.techOnly || (S0.techOnly === 'camera') === (k === 0)) : [], fl = S0.mobile ? [`<div class="lg"><i class="fsd"></i>${t('Dead fish spot (field mission)')}</div>`] : [];
   const l = items.map(([ty, c, w, lab]) => `<div class="lg">${sw(ty, c, w)}${esc(t(lab))}</div>`).concat(stn, mods, tl, fl); $('#legend').innerHTML = l.length ? l.join('') : ''; $('#legend').style.display = l.length ? '' : 'none';
 }
 const stepsOf = (i) => (SC[i].steps ? SC[i].steps.length : 1);

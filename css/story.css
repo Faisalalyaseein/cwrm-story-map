@@ -168,3 +168,5 @@ body.printing::after{display:none!important}body.printing #map{position:fixed;in
 #lightbox.on{display:flex}#lightbox img{height:80vh;width:auto;max-width:94vw;object-fit:contain;border-radius:8px}
 #lightbox .lbc{color:#fff;font-size:16px;max-width:90vw;text-align:center;line-height:1.4}
 #lightbox #lbX{position:absolute;top:14px;right:18px;background:none;border:0;color:#fff;font-size:38px;cursor:pointer;line-height:1}
+
+#panel.wide{width:min(520px,94vw);right:-560px}#panel.wide.open{right:14px}#panel .photo{margin:-4px -6px 12px;position:relative;border-radius:10px;overflow:hidden}#panel .photo img{width:100%;max-height:none;display:block;cursor:zoom-in}
