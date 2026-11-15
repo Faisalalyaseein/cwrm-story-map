@@ -5,7 +5,7 @@
 const D = window.CWRM, SC = D.scenes, $ = (s, r = document) => r.querySelector(s);
 const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 /* colour logic (comment of 2026-11-01): freshwater = blues, drainage water = olive / ochre, stations keep their priority colours. Change here only. */
-const PAL = { river: '#0B4F9E', branch: '#1565C0', canal: '#2FA4E7', basinRiver: '#5BA7DC', lake: '#9BCDEB', drain: '#B5651D', mod: '#7A3E0B', pol: '#8E24AA', basin: '#1565C0', tigris: '#7C8FA0',
+const PAL = { river: '#0B4F9E', branch: '#00968A', canal: '#2FA4E7', basinRiver: '#5BA7DC', lake: '#9BCDEB', drain: '#B5651D', mod: '#7A3E0B', pol: '#8E24AA', basin: '#1565C0', tigris: '#7C8FA0',
   proj: '#2E6B1F', gov: '#6B7785', govHi: '#E8710A', navy: '#0B3C5D', p1: '#E8710A', p2: '#2A9D8F', p3: '#7B8794', alert: '#C62828', ok: '#2A9D8F', dead: '#8C8C8C', iraq: '#0B3C5D' };
 const PCOL = { 1: PAL.p1, 2: PAL.p2, 3: PAL.p3 }, PLAB = { 1: '1st priority', 2: '2nd priority', 3: '3rd priority' };
 const hav = (a, b, c, d) => { const r = Math.PI / 180, dl = (c - a) * r, dn = (d - b) * r, x = Math.sin(dl / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dn / 2) ** 2; return 12742 * Math.asin(Math.sqrt(x)); };
@@ -55,13 +55,13 @@ const tip = (html) => (f, l) => l.bindTooltip(html(f.properties), { sticky: true
 const lyBasin = L.geoJSON(D.basin, { pane: 'basin', renderer: cv('basin'), style: f => f.properties.name === 'Euphrates basin' ? { color: PAL.basin, weight: 2, fillColor: PAL.basin, fillOpacity: 0.13 } : { color: PAL.tigris, weight: 1.2, dashArray: '5 4', fillColor: PAL.tigris, fillOpacity: 0.1 }, onEachFeature: tip(p => `<b>${esc(t(p.name))}</b><br>about ${Math.round(p.km / 1000) * 1000 > 0 ? (Math.round(p.km / 1000) * 1000).toLocaleString() : ''} km² (HydroBASINS level 6)`) }).addTo(map);
 const lyIraq = L.geoJSON(D.iraq, { pane: 'iraq', renderer: cv('iraq'), interactive: false, style: { color: PAL.iraq, weight: 2.4, fillColor: PAL.iraq, fillOpacity: 0.05 } }).addTo(map);
 // governorates (highlight set per scene)
-const govKey = (n) => ({ Babylon: 'Babil', Qadisiya: 'Al-Qadisiyah', Muthanna: 'Muthanna', Najaf: 'Najaf', Kerbela: 'Karbala', Baghdad: 'Baghdad', Wasit: 'Wasit', 'Thi-Qar': 'Thi-Qar', Anbar: 'Anbar' }[n] || n);
-const GOVHI = ['Babylon', 'Qadisiya', 'Muthanna'];
+const govKey = (n) => ({ Babylon: 'Babil', Diwaniyah: 'Al-Diwaniyah', Muthanna: 'Muthanna', Najaf: 'Najaf', Kerbela: 'Karbala', Baghdad: 'Baghdad', Wasit: 'Wasit', 'Thi-Qar': 'Thi-Qar', Anbar: 'Anbar' }[n] || n);
+const GOVHI = ['Babylon', 'Diwaniyah', 'Muthanna'];
 let govFill = false;
 const lyGov = L.geoJSON(D.governorates, { pane: 'gov', renderer: cv('gov'), interactive: false, style: f => ({ color: PAL.gov, weight: 1.2, dashArray: '8 4 2 4', fillColor: PAL.govHi, fillOpacity: govFill && GOVHI.includes(f.properties.en) ? 0.12 : 0 }) }).addTo(map);
 function center(g) { const rings = g.type === 'Polygon' ? [g.coordinates[0]] : g.coordinates.map(p => p[0]); let best = null, ba = -1; rings.forEach(r => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; r.forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }); const a = (x1 - x0) * (y1 - y0); if (a > ba) { ba = a; best = [(y0 + y1) / 2, (x0 + x1) / 2]; } }); return best; }
 const lyGovLab = L.layerGroup();
-D.governorates.features.forEach(f => { if (!['Babylon', 'Qadisiya', 'Muthanna', 'Najaf', 'Kerbela', 'Wasit', 'Baghdad'].includes(f.properties.en)) return; const c = center(f.geometry); if (c) L.marker(c, { pane: 'labels', interactive: false, icon: L.divIcon({ className: '', html: `<div class="lab gov ${GOVHI.includes(f.properties.en) ? 'hi' : ''}">${dual(govKey(f.properties.en), f.properties.ar)}</div>` }) }).addTo(lyGovLab); });
+D.governorates.features.forEach(f => { if (!['Babylon', 'Diwaniyah', 'Muthanna', 'Najaf', 'Kerbela', 'Wasit', 'Baghdad'].includes(f.properties.en)) return; const c = center(f.geometry); if (c) L.marker(c, { pane: 'labels', interactive: false, icon: L.divIcon({ className: '', html: `<div class="lab gov ${GOVHI.includes(f.properties.en) ? 'hi' : ''}">${dual(govKey(f.properties.en), f.properties.ar)}</div>` }) }).addTo(lyGovLab); });
 // rivers, lakes
 const RW = { 1: 2.4, 2: 1.4, 3: 0.8 };
 const lyBR = L.geoJSON(D.basinRivers, { pane: 'basinRivers', renderer: cv('basinRivers'), style: f => ({ color: PAL.basinRiver, weight: RW[f.properties.rank] || 0.8, opacity: 0.95 }), onEachFeature: tip(p => `<b>${esc(p.name || 'River')}</b>`) }).addTo(map);
@@ -155,7 +155,7 @@ const gapLayer = L.layerGroup(), RADIUS = 25; let gapStats = { total: 0, covered
 /* ---------- station card ---------- */
 let cardId = null, photoIx = 0, techKey = 'radar';
 const T_CAM = ['tech_camera_site.jpg', 'Camera-based observation', 'Visual record of the water level and the site'], T_RAD = ['tech_radar_site.jpg', 'Non-contact radar', 'Water level and surface velocity / flow'], T_WQ = ['tech_wq.jpg', 'Multiparameter sonde', 'Continuous water quality (pH, DO, EC, temperature, turbidity)'];
-const T_ADCP = ['tech_adcp.jpg', 'ADCP on a mobile platform', 'Water quantity (discharge) measured at different points on the river'], T_KIT = [null, 'Mobile water quality testing kit', 'Spot measurements at ad hoc points'];
+const T_ADCP = ['tech_adcp.jpg', 'ADCP on a mobile platform', 'Water quantity (discharge) measured at different points on the river'], T_KIT = ['tech_kit.jpg', 'Mobile water quality testing kit', 'Spot measurements at ad hoc points'];
 const TECHSETS = { camera: [T_CAM, T_WQ], radar: [T_RAD, T_WQ], mobile: [T_ADCP, T_KIT] };
 const techHtml = (heading, key) => { const set = TECHSETS[key] || TECHSETS.radar; return `<h4 class="th">${t(heading)}</h4><div class="tech n${set.length}">${set.map(x => `<figure>${x[0] ? `<img src="img/${x[0]}" alt="${esc(tt(x[1]))}">` : `<div class="ph">${t('Photo to be added')}</div>`}<figcaption><b>${esc(tt(x[1]))}</b>${esc(tt(x[2]))}</figcaption></figure>`).join('')}</div><div class="fine">${t('Illustrative images; source and licence to be confirmed.')}</div>`; };
 function openCard(id, user) {

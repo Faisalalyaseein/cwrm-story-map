@@ -30,7 +30,7 @@ CWRM.scenes = [
     id: 'hrs', title: 'The Hillah River System', line: 'More than 200 km from the Hindiya Barrage to the downstream boundaries.',
     camera: { b: [[31.3, 44.0], [33.0, 45.9]] },
     layers: { reaches: 'on', euph: 'on', gov: 'on', govFill: 'on', basinRivers: 'off' }, cities: ['Hindiya', 'Hillah', 'Diwaniyah', 'Afak', 'Rumaitha', 'Samawah', 'Najaf', 'Karbala'], barrage: true, branchLabels: true, labels: 'none',
-    stats: [{ v: '3', l: 'main branches downstream of the Hindiya Barrage' }, { v: '3', l: 'governorates: Babil, Al-Qadisiyah, Muthanna' }],
+    stats: [{ v: '3', l: 'main branches downstream of the Hindiya Barrage' }, { v: '3', l: 'governorates: Babil, Al-Diwaniyah, Muthanna' }],
     steps: [{}, { branchFocus: 'Hillah', line: 'The Hillah main channel.' }, { branchFocus: 'Daghara', line: 'The Daghara branch.' }, { branchFocus: 'Diwaniyah', line: 'The Diwaniyah and Rumaytha branch.' }],
     notes: 'The Hillah River branches from the Euphrates at the Hindiya Barrage and continues through Babil, Diwaniyah and Muthanna. The system includes the Hillah main channel and the Daghara and Diwaniyah-Rumaytha branches. It supplies agriculture and urban areas across more than 200 kilometres, so management decisions require information from the system entrance to its downstream boundaries.',
     action: 'Zoom to the Hindiya Barrage and follow the three main branches downstream. Introduce the governorates, main cities and river-system boundaries.'
